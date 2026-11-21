@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Saga Cafe - Menu</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .tap-scale:active {
+            transform: scale(0.98);
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-tertiary-fixed": "#40000f",
+                        "outline-variant": "#bdcabc",
+                        "primary-fixed-dim": "#64dd91",
+                        "on-surface-variant": "#3e4a3f",
+                        "surface-dim": "#d3daea",
+                        "tertiary-fixed": "#ffdadb",
+                        "surface-tint": "#006d3a",
+                        "tertiary-container": "#c24d5e",
+                        "on-error": "#ffffff",
+                        "on-background": "#151c27",
+                        "surface-container-high": "#e2e8f8",
+                        "on-error-container": "#93000a",
+                        "primary": "#006a39",
+                        "on-secondary-fixed-variant": "#404758",
+                        "error": "#ba1a1a",
+                        "on-tertiary": "#ffffff",
+                        "on-secondary-fixed": "#141b2b",
+                        "on-surface": "#151c27",
+                        "inverse-surface": "#2a313d",
+                        "tertiary-fixed-dim": "#ffb2b8",
+                        "surface-bright": "#f9f9ff",
+                        "on-primary-container": "#f6fff4",
+                        "tertiary": "#a23546",
+                        "secondary-container": "#d9dff5",
+                        "secondary": "#575e70",
+                        "surface": "#f9f9ff",
+                        "on-secondary-container": "#5c6274",
+                        "surface-variant": "#dce2f3",
+                        "on-tertiary-container": "#fffbff",
+                        "error-container": "#ffdad6",
+                        "surface-container-highest": "#dce2f3",
+                        "inverse-on-surface": "#ebf1ff",
+                        "on-primary-fixed-variant": "#00522b",
+                        "secondary-fixed-dim": "#c0c6db",
+                        "on-primary": "#ffffff",
+                        "primary-container": "#008649",
+                        "surface-container": "#e7eefe",
+                        "on-primary-fixed": "#00210e",
+                        "inverse-primary": "#64dd91",
+                        "on-secondary": "#ffffff",
+                        "primary-fixed": "#82faab",
+                        "surface-container-low": "#f0f3ff",
+                        "secondary-fixed": "#dce2f7",
+                        "background": "#f9f9ff",
+                        "on-tertiary-fixed-variant": "#851f33",
+                        "outline": "#6d7a6f",
+                        "surface-container-lowest": "#ffffff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "sm": "12px",
+                        "xl": "32px",
+                        "base": "4px",
+                        "lg": "24px",
+                        "md": "16px",
+                        "gutter": "16px",
+                        "xs": "8px",
+                        "container-margin": "20px"
+                    },
+                    "fontFamily": {
+                        "body-lg": ["Inter"],
+                        "title-md": ["Inter"],
+                        "headline-lg-mobile": ["Inter"],
+                        "headline-lg": ["Inter"],
+                        "label-sm": ["Inter"],
+                        "display": ["Inter"],
+                        "body-md": ["Inter"]
+                    },
+                    "fontSize": {
+                        "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "title-md": ["18px", {"lineHeight": "24px", "fontWeight": "600"}],
+                        "headline-lg-mobile": ["20px", {"lineHeight": "28px", "fontWeight": "700"}],
+                        "headline-lg": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                        "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "display": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}]
+                    }
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-background text-on-surface font-body-lg min-h-screen pb-32">
+<!-- Top AppBar -->
+<header class="bg-surface/80 backdrop-blur-md sticky top-0 z-50 flex justify-between items-center w-full px-container-margin py-md shadow-sm">
+<div class="flex items-center gap-xs">
+<span class="material-symbols-outlined text-primary" data-icon="restaurant">restaurant</span>
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile font-bold text-primary">Saga Cafe</h1>
+</div>
+<div class="bg-surface-container px-sm py-1 rounded-full border border-outline-variant">
+<span class="font-label-sm text-label-sm text-primary">Open Now • 25 min</span>
+</div>
+</header>
+<!-- Sticky Category Tabs -->
+<nav class="sticky top-[68px] z-40 bg-surface/95 backdrop-blur-sm py-md border-b border-outline-variant/30 overflow-x-auto hide-scrollbar">
+<div class="flex px-container-margin gap-sm">
+<button class="flex-none px-lg py-sm rounded-full bg-primary text-on-primary font-label-sm text-label-sm transition-all shadow-md tap-scale">
+                Pizza
+            </button>
+<button class="flex-none px-lg py-sm rounded-full border border-outline-variant text-on-surface-variant font-label-sm text-label-sm hover:bg-surface-container-high transition-colors tap-scale">
+                Burger
+            </button>
+<button class="flex-none px-lg py-sm rounded-full border border-outline-variant text-on-surface-variant font-label-sm text-label-sm hover:bg-surface-container-high transition-colors tap-scale">
+                Fries
+            </button>
+<button class="flex-none px-lg py-sm rounded-full border border-outline-variant text-on-surface-variant font-label-sm text-label-sm hover:bg-surface-container-high transition-colors tap-scale">
+                Pasta
+            </button>
+<button class="flex-none px-lg py-sm rounded-full border border-outline-variant text-on-surface-variant font-label-sm text-label-sm hover:bg-surface-container-high transition-colors tap-scale">
+                Beverages
+            </button>
+</div>
+</nav>
+<!-- Content: Menu Cards -->
+<main class="px-container-margin py-lg space-y-lg">
+<!-- Menu Item 1 -->
+<article class="bg-surface-container-lowest rounded-xl overflow-hidden shadow-[0px_4px_20px_rgba(0,0,0,0.05)] border border-outline-variant/20 group">
+<div class="relative h-56 w-full overflow-hidden">
+<img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" data-alt="A premium close-up food photography of a Farm Fresh Pizza with a perfectly charred thin crust, topped with vibrant green capsicum, red onions, and earthy grilled mushrooms. The lighting is warm and directional, highlighting the melting mozzarella cheese and the fresh textures of the vegetables. The style is high-end culinary editorial, using a shallow depth of field against a minimalist white cafe background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCD7RqQdJArbTaWpk0yEgKf8w39303drLDm5hF271iHHxx6Tjec-QCU7uKljcsOPa8EvxxeACkpDBXMgKgYLgUdIujUgyMtIYEvA_o7iS_c58UdswILAc4e8_ZnFzch_NNqLSc_CciLQX22cY0WtZFAaMNifLFcE8VhW5NWlMxdXJ9hqgYW3_07yTQqH7tZNX2064NNqNtni0xnotQbExVFe44QDqOAV23zfGb_v7zT0Rk9-3R_bt56"/>
+<div class="absolute top-sm right-sm bg-surface-container-lowest/90 backdrop-blur-sm p-1 rounded-sm border border-primary/20">
+<div class="w-3 h-3 bg-primary rounded-full ring-2 ring-white"></div>
+</div>
+</div>
+<div class="p-md space-y-xs">
+<div class="flex justify-between items-start">
+<div>
+<h2 class="font-title-md text-title-md text-on-surface">Farm Fresh Pizza</h2>
+<p class="font-body-md text-body-md text-on-surface-variant mt-1 leading-snug">Loaded with fresh onions, capsicum, and grilled mushrooms.</p>
+</div>
+</div>
+<div class="flex justify-between items-center pt-sm">
+<span class="font-title-md text-title-md text-primary">₹249</span>
+<div class="relative min-w-[80px]" id="cart-control-1">
+<button class="w-full bg-primary text-on-primary py-xs px-lg rounded-lg font-label-sm text-label-sm shadow-md tap-scale transition-opacity" id="add-btn-1" onclick="toggleQty(1)">
+                            ADD
+                        </button>
+<div class="hidden flex items-center justify-between bg-primary-container text-on-primary-container rounded-lg px-xs py-1 border border-primary" id="qty-selector-1">
+<button class="w-8 h-8 flex items-center justify-center font-bold" onclick="changeQty(1, -1)">-</button>
+<span class="font-label-sm text-label-sm font-bold" id="qty-1">1</span>
+<button class="w-8 h-8 flex items-center justify-center font-bold" onclick="changeQty(1, 1)">+</button>
+</div>
+</div>
+</div>
+</div>
+</article>
+<!-- Menu Item 2 -->
+<article class="bg-surface-container-lowest rounded-xl overflow-hidden shadow-[0px_4px_20px_rgba(0,0,0,0.05)] border border-outline-variant/20 group">
+<div class="relative h-56 w-full overflow-hidden">
+<img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" data-alt="A gourmet Paneer Tikka Pizza featuring large chunks of marinated paneer, spicy green chilies, and fresh coriander leaves scattered on a golden crispy crust. The lighting is bright and clean, capturing the vibrant oranges of the paneer and the emerald green of the coriander. The aesthetic is modern and playful, reflecting a high-end urban cafe vibe with clean lines and soft ambient shadows." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDvQGFuy1wbc2r6ibG5TJAjPI9BydjgApmSUIUu1TmQPa1Mtz3s5KMeZnCHckRUk2phm-rjtFb_R4t0ztLk0k3pcXMhgKbxpn5uhBVA3SLZn_9JBH_NWdsWeUz-UFyQtVQTKcdR8ERz87vUTAZq7uGYCFsmlXzxfALFB5cxr3ZHe-TdP2xygvfso3kMENJ74twGlNRcGK6LKqLNa1KgrQT6i5SAvgPPcq-nhVjjP6u2DmZiLiqgBJwx"/>
+<div class="absolute top-sm right-sm bg-surface-container-lowest/90 backdrop-blur-sm p-1 rounded-sm border border-primary/20">
+<div class="w-3 h-3 bg-primary rounded-full ring-2 ring-white"></div>
+</div>
+</div>
+<div class="p-md space-y-xs">
+<div class="flex justify-between items-start">
+<div>
+<h2 class="font-title-md text-title-md text-on-surface">Paneer Tikka Pizza</h2>
+<p class="font-body-md text-body-md text-on-surface-variant mt-1 leading-snug">Traditional spiced paneer, onions, and capsicum with mint drizzle.</p>
+</div>
+</div>
+<div class="flex justify-between items-center pt-sm">
+<span class="font-title-md text-title-md text-primary">₹329</span>
+<div class="relative min-w-[80px]" id="cart-control-2">
+<button class="w-full bg-primary text-on-primary py-xs px-lg rounded-lg font-label-sm text-label-sm shadow-md tap-scale" id="add-btn-2" onclick="toggleQty(2)">
+                            ADD
+                        </button>
+<div class="hidden flex items-center justify-between bg-primary-container text-on-primary-container rounded-lg px-xs py-1 border border-primary" id="qty-selector-2">
+<button class="w-8 h-8 flex items-center justify-center font-bold" onclick="changeQty(2, -1)">-</button>
+<span class="font-label-sm text-label-sm font-bold" id="qty-2">1</span>
+<button class="w-8 h-8 flex items-center justify-center font-bold" onclick="changeQty(2, 1)">+</button>
+</div>
+</div>
+</div>
+</div>
+</article>
+<!-- Menu Item 3 -->
+<article class="bg-surface-container-lowest rounded-xl overflow-hidden shadow-[0px_4px_20px_rgba(0,0,0,0.05)] border border-outline-variant/20 group">
+<div class="relative h-56 w-full overflow-hidden">
+<img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" data-alt="A minimalist overhead shot of a classic Margherita Pizza with rich tomato sauce, fresh basil leaves, and pools of white buffalo mozzarella. The crust is perfectly bubbled and artisanal. The photo uses soft morning lighting to create a fresh, airy feel, emphasizing the premium quality of simple ingredients. Emerald green basil pops against the red sauce and white cheese, maintaining the brand's color palette." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAznrcIua2j6sKkw60BmxpN-0CmNC9UvCCqHatOdLdw80aI4ufJLTlAChAOenEtHM_xVowXX4aRZR8kErJjU_84BW-EkV5BSXo3pw_CFtAwRIihfY_IxwLd5nS39DCiDla9jbb6JyhQmDngRaLOz5ziiAyewKmdoR5mPb_pO3z1DTR2IsRA0PIn3MCNiCduME8TJYCMK7hT3Zmnfk_whMs-WsqQZGc7NpkhGa06EKm5pKcB8DAh5OwT"/>
+<div class="absolute top-sm right-sm bg-surface-container-lowest/90 backdrop-blur-sm p-1 rounded-sm border border-primary/20">
+<div class="w-3 h-3 bg-primary rounded-full ring-2 ring-white"></div>
+</div>
+</div>
+<div class="p-md space-y-xs">
+<div class="flex justify-between items-start">
+<div>
+<h2 class="font-title-md text-title-md text-on-surface">Classic Margherita</h2>
+<p class="font-body-md text-body-md text-on-surface-variant mt-1 leading-snug">Rich tomato sauce, fresh mozzarella, and aromatic basil leaves.</p>
+</div>
+</div>
+<div class="flex justify-between items-center pt-sm">
+<span class="font-title-md text-title-md text-primary">₹199</span>
+<div class="relative min-w-[80px]" id="cart-control-3">
+<button class="w-full bg-primary text-on-primary py-xs px-lg rounded-lg font-label-sm text-label-sm shadow-md tap-scale" id="add-btn-3" onclick="toggleQty(3)">
+                            ADD
+                        </button>
+<div class="hidden flex items-center justify-between bg-primary-container text-on-primary-container rounded-lg px-xs py-1 border border-primary" id="qty-selector-3">
+<button class="w-8 h-8 flex items-center justify-center font-bold" onclick="changeQty(3, -1)">-</button>
+<span class="font-label-sm text-label-sm font-bold" id="qty-3">1</span>
+<button class="w-8 h-8 flex items-center justify-center font-bold" onclick="changeQty(3, 1)">+</button>
+</div>
+</div>
+</div>
+</div>
+</article>
+</main>
+<!-- Floating Cart Bar -->
+<div class="fixed bottom-[72px] left-0 right-0 px-container-margin z-40 transition-all duration-300" id="cart-bar">
+<div class="bg-primary text-on-primary rounded-xl flex items-center justify-between px-lg py-sm shadow-[0px_10px_30px_rgba(0,0,0,0.15)] tap-scale">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm opacity-90">1 Item</span>
+<span class="font-title-md text-title-md font-bold">₹249</span>
+</div>
+<button class="flex items-center gap-xs">
+<span class="font-title-md text-title-md font-bold uppercase tracking-wide">View Cart</span>
+<span class="material-symbols-outlined">shopping_bag</span>
+</button>
+</div>
+</div>
+<!-- Bottom Navigation Shell -->
+<footer class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-xs py-sm bg-surface shadow-[0px_-4px_20px_rgba(0,0,0,0.05)] border-t border-outline-variant">
+<!-- Home -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1 hover:opacity-80 transition-opacity tap-scale" href="#">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+<span class="font-label-sm text-label-sm">Home</span>
+</a>
+<!-- Menu (Active) -->
+<a class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-full px-4 py-1 transition-transform duration-200 scale-[0.98]" href="#">
+<span class="material-symbols-outlined" data-icon="menu_book" style="font-variation-settings: 'FILL' 1;">menu_book</span>
+<span class="font-label-sm text-label-sm">Menu</span>
+</a>
+<!-- Cart -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1 hover:opacity-80 transition-opacity tap-scale" href="#">
+<span class="material-symbols-outlined" data-icon="shopping_cart">shopping_cart</span>
+<span class="font-label-sm text-label-sm">Cart</span>
+</a>
+<!-- Orders -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1 hover:opacity-80 transition-opacity tap-scale" href="#">
+<span class="material-symbols-outlined" data-icon="receipt_long">receipt_long</span>
+<span class="font-label-sm text-label-sm">Orders</span>
+</a>
+<!-- Profile -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1 hover:opacity-80 transition-opacity tap-scale" href="#">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="font-label-sm text-label-sm">Profile</span>
+</a>
+</footer>
+<script>
+        function toggleQty(id) {
+            const addBtn = document.getElementById(`add-btn-${id}`);
+            const qtySelector = document.getElementById(`qty-selector-${id}`);
+            
+            addBtn.classList.add('hidden');
+            qtySelector.classList.remove('hidden');
+            qtySelector.classList.add('flex');
+            
+            updateCartBar();
+        }
+
+        function changeQty(id, delta) {
+            const qtySpan = document.getElementById(`qty-${id}`);
+            let currentQty = parseInt(qtySpan.innerText);
+            currentQty += delta;
+            
+            if (currentQty <= 0) {
+                const addBtn = document.getElementById(`add-btn-${id}`);
+                const qtySelector = document.getElementById(`qty-selector-${id}`);
+                qtySelector.classList.add('hidden');
+                qtySelector.classList.remove('flex');
+                addBtn.classList.remove('hidden');
+            } else {
+                qtySpan.innerText = currentQty;
+            }
+            
+            updateCartBar();
+        }
+
+        function updateCartBar() {
+            // Minimal simulation of cart logic
+            const bar = document.getElementById('cart-bar');
+            const qtyLabels = document.querySelectorAll('[id^="qty-"]');
+            let totalItems = 0;
+            
+            qtyLabels.forEach(span => {
+                if (!span.parentElement.classList.contains('hidden')) {
+                    totalItems += parseInt(span.innerText);
+                }
+            });
+
+            if (totalItems > 0) {
+                bar.style.transform = 'translateY(0)';
+                bar.style.opacity = '1';
+            } else {
+                bar.style.transform = 'translateY(100px)';
+                bar.style.opacity = '0';
+            }
+        }
+    </script>
+</body></html>

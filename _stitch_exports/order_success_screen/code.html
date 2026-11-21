@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Order Success | Saga Cafe</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-tertiary-fixed": "#40000f",
+                    "outline-variant": "#bdcabc",
+                    "primary-fixed-dim": "#64dd91",
+                    "on-surface-variant": "#3e4a3f",
+                    "surface-dim": "#d3daea",
+                    "tertiary-fixed": "#ffdadb",
+                    "surface-tint": "#006d3a",
+                    "tertiary-container": "#c24d5e",
+                    "on-error": "#ffffff",
+                    "on-background": "#151c27",
+                    "surface-container-high": "#e2e8f8",
+                    "on-error-container": "#93000a",
+                    "primary": "#006a39",
+                    "on-secondary-fixed-variant": "#404758",
+                    "error": "#ba1a1a",
+                    "on-tertiary": "#ffffff",
+                    "on-secondary-fixed": "#141b2b",
+                    "on-surface": "#151c27",
+                    "inverse-surface": "#2a313d",
+                    "tertiary-fixed-dim": "#ffb2b8",
+                    "surface-bright": "#f9f9ff",
+                    "on-primary-container": "#f6fff4",
+                    "tertiary": "#a23546",
+                    "secondary-container": "#d9dff5",
+                    "secondary": "#575e70",
+                    "surface": "#f9f9ff",
+                    "on-secondary-container": "#5c6274",
+                    "surface-variant": "#dce2f3",
+                    "on-tertiary-container": "#fffbff",
+                    "error-container": "#ffdad6",
+                    "surface-container-highest": "#dce2f3",
+                    "inverse-on-surface": "#ebf1ff",
+                    "on-primary-fixed-variant": "#00522b",
+                    "secondary-fixed-dim": "#c0c6db",
+                    "on-primary": "#ffffff",
+                    "primary-container": "#008649",
+                    "surface-container": "#e7eefe",
+                    "on-primary-fixed": "#00210e",
+                    "inverse-primary": "#64dd91",
+                    "on-secondary": "#ffffff",
+                    "primary-fixed": "#82faab",
+                    "surface-container-low": "#f0f3ff",
+                    "secondary-fixed": "#dce2f7",
+                    "background": "#f9f9ff",
+                    "on-tertiary-fixed-variant": "#851f33",
+                    "outline": "#6d7a6f",
+                    "surface-container-lowest": "#ffffff"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "sm": "12px",
+                    "xl": "32px",
+                    "base": "4px",
+                    "lg": "24px",
+                    "md": "16px",
+                    "gutter": "16px",
+                    "xs": "8px",
+                    "container-margin": "20px"
+            },
+            "fontFamily": {
+                    "body-lg": ["Inter"],
+                    "title-md": ["Inter"],
+                    "headline-lg-mobile": ["Inter"],
+                    "headline-lg": ["Inter"],
+                    "label-sm": ["Inter"],
+                    "display": ["Inter"],
+                    "body-md": ["Inter"]
+            },
+            "fontSize": {
+                    "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "title-md": ["18px", {"lineHeight": "24px", "fontWeight": "600"}],
+                    "headline-lg-mobile": ["20px", {"lineHeight": "28px", "fontWeight": "700"}],
+                    "headline-lg": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                    "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "display": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        
+        @keyframes pop-in {
+            0% { transform: scale(0.8); opacity: 0; }
+            70% { transform: scale(1.1); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .animate-pop {
+            animation: pop-in 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        .confetti-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+    </style>
+</head>
+<body class="bg-surface font-body-md text-on-surface min-h-screen flex flex-col items-center overflow-x-hidden">
+<!-- Top App Bar -->
+<header class="flex justify-between items-center w-full px-container-margin py-md z-50 docked full-width top-0 sticky bg-surface/80 backdrop-blur-md shadow-sm">
+<div class="flex items-center gap-xs">
+<span class="material-symbols-outlined text-primary text-headline-lg-mobile" data-icon="restaurant">restaurant</span>
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile font-bold text-primary">Saga Cafe</h1>
+</div>
+<div class="font-label-sm text-label-sm text-primary">
+            Open Now • 25 min
+        </div>
+</header>
+<main class="flex-grow flex flex-col items-center justify-center w-full max-w-md px-container-margin py-xl relative">
+<!-- Success Illustration Area -->
+<div class="relative w-full aspect-square max-w-[280px] mb-lg flex items-center justify-center">
+<!-- Background Decorative Blobs -->
+<div class="absolute inset-0 bg-primary-fixed opacity-20 blur-3xl rounded-full"></div>
+<!-- Main Illustration Card -->
+<div class="relative z-20 animate-pop">
+<div class="w-48 h-48 bg-primary rounded-full flex items-center justify-center shadow-lg border-4 border-white">
+<span class="material-symbols-outlined text-white text-[80px]" style="font-variation-settings: 'FILL' 0, 'wght' 600;">check_circle</span>
+</div>
+<!-- Floating Decorative Elements -->
+<div class="absolute -top-4 -right-2 bg-tertiary-container p-sm rounded-xl shadow-md rotate-12">
+<span class="material-symbols-outlined text-white" data-icon="celebration">celebration</span>
+</div>
+<div class="absolute -bottom-2 -left-4 bg-secondary-container p-sm rounded-xl shadow-md -rotate-12">
+<span class="material-symbols-outlined text-on-secondary-container" data-icon="local_pizza">local_pizza</span>
+</div>
+</div>
+</div>
+<!-- Success Message -->
+<div class="text-center space-y-xs mb-xl">
+<h2 class="font-display text-display text-on-surface leading-tight px-sm">Order Placed Successfully!</h2>
+<p class="font-body-lg text-body-lg text-on-surface-variant">Your delicious meal is on its way.</p>
+</div>
+<!-- Order Summary Card -->
+<div class="w-full glass-card border border-outline-variant rounded-[24px] p-lg shadow-[0px_4px_20px_rgba(0,0,0,0.05)] mb-xl">
+<div class="flex justify-between items-center mb-md border-b border-outline-variant pb-md">
+<div>
+<p class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-widest">Order ID</p>
+<p class="font-title-md text-title-md text-on-surface">#SAGA-1024</p>
+</div>
+<div class="text-right">
+<p class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-widest">Est. Delivery</p>
+<p class="font-title-md text-title-md text-primary">Arriving in 25 min</p>
+</div>
+</div>
+<!-- Delivery Status Micro-indicator -->
+<div class="flex items-center gap-md">
+<div class="flex-shrink-0 w-10 h-10 rounded-full bg-primary-fixed flex items-center justify-center">
+<span class="material-symbols-outlined text-on-primary-fixed text-md" data-icon="moped">moped</span>
+</div>
+<div>
+<p class="font-title-md text-title-md text-on-surface">Preparing your order</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant">The chef is crafting your saga...</p>
+</div>
+</div>
+</div>
+<!-- Action Buttons -->
+<div class="w-full space-y-md">
+<button class="w-full py-md px-lg bg-primary text-white font-title-md text-title-md rounded-xl shadow-lg active:scale-[0.98] transition-transform duration-200 flex items-center justify-center gap-sm">
+<span class="material-symbols-outlined" data-icon="map">map</span>
+                Track Order
+            </button>
+<button class="w-full py-md px-lg border-2 border-primary text-primary font-title-md text-title-md rounded-xl hover:bg-primary-container/10 active:scale-[0.98] transition-all duration-200 flex items-center justify-center gap-sm">
+                Continue Shopping
+            </button>
+</div>
+</main>
+<!-- Visual Polish: Hero Image Preview (The food that's coming) -->
+<section class="w-full px-container-margin py-lg bg-surface-container-low mt-lg rounded-t-[40px]">
+<h3 class="font-headline-lg-mobile text-headline-lg-mobile text-on-surface mb-md">Order Summary</h3>
+<div class="flex gap-md overflow-x-auto pb-sm no-scrollbar">
+<div class="flex-shrink-0 w-24 h-24 rounded-2xl overflow-hidden shadow-sm bg-white p-1">
+<img class="w-full h-full object-cover rounded-xl" data-alt="A gourmet artisan pizza with melted fresh mozzarella, bright red heirloom tomatoes, and vibrant green basil leaves on a thin, perfectly charred crust, shot in high-end food photography style with soft natural light." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAaJ4kALdCzCoIbn1j6iBYZ5v82ZfHbcpupZ8ZOrWernsz--1-nhKtxVW5SYnWgpngl5jOGCYvUrOfJU_CIqYPCxYDQdOqGb1Xm6S22yOFeBH7Uv-RR3xnQ6hGt7F3lHdsHGSFxcYDgEi5a4UmRLxrK8pIGXEV0-EIOIvmxdCvgI4OvOh3jJULnQwHo6bCoXghGnapriYJiqLTCrnk7e_byy72MkxzQf_0eadtRkeE3gzHAXTm6Ejt8"/>
+</div>
+<div class="flex-shrink-0 w-24 h-24 rounded-2xl overflow-hidden shadow-sm bg-white p-1">
+<img class="w-full h-full object-cover rounded-xl" data-alt="A refreshing craft iced tea in a tall glass with condensation, garnished with a slice of lemon and fresh mint sprigs, set against a clean minimalist cafe background with soft emerald green accents." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCWXVkeqDow-RkdkoHP-qbckYnMXYydUsDs7iX0W_AN0K5dgCT-HcEDg0-6TqaRCToToZ-Ek5IYu6mWt4rAtofZt82M81PXJEmR4ZkbXob9B5Kkx4dOQfnVpuGmHN-3a8WYGaXJLWNHohqfwHlxX5q8G5xFEthEXemU3P_kxh03HRp78N4lY3PzlZAk_dfZstMXzibKm0LKqNBt8_PMZHG-S3GDKOPz7TQrXTr7uEVKK__EgfBD8Sfe"/>
+</div>
+<div class="flex-shrink-0 w-24 h-24 rounded-2xl overflow-hidden shadow-sm bg-white p-1">
+<img class="w-full h-full object-cover rounded-xl" data-alt="A decadent dark chocolate lava cake with a molten center, served on a white ceramic plate with a dusting of powdered sugar and a single red raspberry, premium food presentation." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDrijWaSdLJBnYo7nOauHVJTmmQ--QEpazc5B2_sfAaVPuRdoVS_Roh6i69Je9K4lZUbnYBY2EJX-07DvErV7RFw-oBDMoIXuOWJHBs7cdZOzSxE26Vy1Z64QxSeDyA5wjf9rqz3INyl5FGji5GkXfuiDsV4dbHP8GJk4wRaO58EeMEsAeb1ifHinjZFH4Jsj5y6RFW3lc1spShApBXvHuapOvUt8tQPxksUWsEm1n-pJGt4_FIEmcB"/>
+</div>
+</div>
+</section>
+<!-- Bottom Navigation Bar (Shell) -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-xs py-sm bg-surface rounded-t-xl shadow-[0px_-4px_20px_rgba(0,0,0,0.05)] border-t border-outline-variant">
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1 hover:opacity-80 transition-opacity" href="#">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+<span class="font-label-sm text-label-sm">Home</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1 hover:opacity-80 transition-opacity" href="#">
+<span class="material-symbols-outlined" data-icon="menu_book">menu_book</span>
+<span class="font-label-sm text-label-sm">Menu</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1 hover:opacity-80 transition-opacity" href="#">
+<span class="material-symbols-outlined" data-icon="shopping_cart">shopping_cart</span>
+<span class="font-label-sm text-label-sm">Cart</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-full px-4 py-1 scale-[0.98] transition-transform duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="receipt_long" style="font-variation-settings: 'FILL' 1;">receipt_long</span>
+<span class="font-label-sm text-label-sm">Orders</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1 hover:opacity-80 transition-opacity" href="#">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="font-label-sm text-label-sm">Profile</span>
+</a>
+</nav>
+<canvas class="confetti-canvas" id="confetti"></canvas>
+<script>
+        // Micro-interaction for confetti effect
+        const canvas = document.getElementById('confetti');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+
+        class Particle {
+            constructor() {
+                this.x = canvas.width / 2;
+                this.y = canvas.height / 2 - 100;
+                this.size = Math.random() * 8 + 4;
+                this.speedX = Math.random() * 10 - 5;
+                this.speedY = Math.random() * -15 - 5;
+                this.gravity = 0.3;
+                this.color = ['#006a39', '#64dd91', '#ffb2b8', '#a23546'][Math.floor(Math.random() * 4)];
+                this.rotation = Math.random() * 360;
+                this.rotationSpeed = Math.random() * 10 - 5;
+                this.opacity = 1;
+            }
+
+            update() {
+                this.speedY += this.gravity;
+                this.x += this.speedX;
+                this.y += this.speedY;
+                this.rotation += this.rotationSpeed;
+                this.opacity -= 0.005;
+            }
+
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate(this.rotation * Math.PI / 180);
+                ctx.globalAlpha = this.opacity;
+                ctx.fillStyle = this.color;
+                ctx.fillRect(-this.size / 2, -this.size / 2, this.size, this.size);
+                ctx.restore();
+            }
+        }
+
+        function init() {
+            resize();
+            for (let i = 0; i < 100; i++) {
+                setTimeout(() => {
+                    particles.push(new Particle());
+                }, i * 20);
+            }
+            animate();
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach((p, index) => {
+                p.update();
+                p.draw();
+                if (p.opacity <= 0 || p.y > canvas.height) {
+                    particles.splice(index, 1);
+                }
+            });
+            if (particles.length > 0) {
+                requestAnimationFrame(animate);
+            }
+        }
+
+        window.addEventListener('resize', resize);
+        window.addEventListener('DOMContentLoaded', init);
+    </script>
+</body></html>

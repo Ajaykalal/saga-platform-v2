@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Cart - Saga Cafe</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-tertiary-fixed": "#40000f",
+                    "outline-variant": "#bdcabc",
+                    "primary-fixed-dim": "#64dd91",
+                    "on-surface-variant": "#3e4a3f",
+                    "surface-dim": "#d3daea",
+                    "tertiary-fixed": "#ffdadb",
+                    "surface-tint": "#006d3a",
+                    "tertiary-container": "#c24d5e",
+                    "on-error": "#ffffff",
+                    "on-background": "#151c27",
+                    "surface-container-high": "#e2e8f8",
+                    "on-error-container": "#93000a",
+                    "primary": "#006a39",
+                    "on-secondary-fixed-variant": "#404758",
+                    "error": "#ba1a1a",
+                    "on-tertiary": "#ffffff",
+                    "on-secondary-fixed": "#141b2b",
+                    "on-surface": "#151c27",
+                    "inverse-surface": "#2a313d",
+                    "tertiary-fixed-dim": "#ffb2b8",
+                    "surface-bright": "#f9f9ff",
+                    "on-primary-container": "#f6fff4",
+                    "tertiary": "#a23546",
+                    "secondary-container": "#d9dff5",
+                    "secondary": "#575e70",
+                    "surface": "#f9f9ff",
+                    "on-secondary-container": "#5c6274",
+                    "surface-variant": "#dce2f3",
+                    "on-tertiary-container": "#fffbff",
+                    "error-container": "#ffdad6",
+                    "surface-container-highest": "#dce2f3",
+                    "inverse-on-surface": "#ebf1ff",
+                    "on-primary-fixed-variant": "#00522b",
+                    "secondary-fixed-dim": "#c0c6db",
+                    "on-primary": "#ffffff",
+                    "primary-container": "#008649",
+                    "surface-container": "#e7eefe",
+                    "on-primary-fixed": "#00210e",
+                    "inverse-primary": "#64dd91",
+                    "on-secondary": "#ffffff",
+                    "primary-fixed": "#82faab",
+                    "surface-container-low": "#f0f3ff",
+                    "secondary-fixed": "#dce2f7",
+                    "background": "#f9f9ff",
+                    "on-tertiary-fixed-variant": "#851f33",
+                    "outline": "#6d7a6f",
+                    "surface-container-lowest": "#ffffff"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "sm": "12px",
+                    "xl": "32px",
+                    "base": "4px",
+                    "lg": "24px",
+                    "md": "16px",
+                    "gutter": "16px",
+                    "xs": "8px",
+                    "container-margin": "20px"
+            },
+            "fontFamily": {
+                    "body-lg": ["Inter"],
+                    "title-md": ["Inter"],
+                    "headline-lg-mobile": ["Inter"],
+                    "headline-lg": ["Inter"],
+                    "label-sm": ["Inter"],
+                    "display": ["Inter"],
+                    "body-md": ["Inter"]
+            },
+            "fontSize": {
+                    "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "title-md": ["18px", {"lineHeight": "24px", "fontWeight": "600"}],
+                    "headline-lg-mobile": ["20px", {"lineHeight": "28px", "fontWeight": "700"}],
+                    "headline-lg": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                    "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "display": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            line-height: 1;
+            text-transform: none;
+            letter-spacing: normal;
+            word-wrap: normal;
+            white-space: nowrap;
+            direction: ltr;
+        }
+        .item-card-shadow {
+            box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.05);
+        }
+        .floating-bar-shadow {
+            box-shadow: 0px -10px 30px rgba(0, 0, 0, 0.08);
+        }
+        input:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(0, 106, 57, 0.1);
+        }
+        .active-scale:active {
+            transform: scale(0.98);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body-md min-h-screen pb-32">
+<!-- Top App Bar -->
+<header class="bg-surface/80 backdrop-blur-md sticky top-0 z-50 flex justify-between items-center w-full px-container-margin py-md shadow-sm">
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-primary" data-icon="restaurant">restaurant</span>
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile font-bold text-primary">Saga Cafe</h1>
+</div>
+<div class="text-primary font-label-sm text-label-sm">
+            Open Now • 25 min
+        </div>
+</header>
+<main class="max-w-xl mx-auto px-container-margin pt-lg">
+<!-- Title -->
+<div class="mb-lg">
+<h2 class="font-headline-lg text-headline-lg text-on-surface">Cart</h2>
+<p class="font-body-md text-on-surface-variant">Review your selection before checkout</p>
+</div>
+<!-- Cart Items List -->
+<section class="space-y-md mb-xl">
+<!-- Item 1 -->
+<div class="item-card-shadow bg-surface-container-lowest rounded-xl p-md border border-outline-variant flex gap-md items-center">
+<div class="w-20 h-20 rounded-lg overflow-hidden flex-shrink-0">
+<img class="w-full h-full object-cover" data-alt="A top-down, high-resolution food photography shot of a classic Margherita Pizza with bubbling mozzarella cheese, fresh basil leaves, and a rich tomato sauce on a thin, charred artisan crust. The lighting is warm and cinematic, highlighting the oily sheen and vibrant reds and greens against a clean, white minimalist restaurant tabletop. Premium gourmet aesthetic with high contrast and sharp details." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAqsQqvJaEvvudBs9t8aMOqdbnexQxuPo6sv6aDPOeL97XrJlgT9ZoIopb9T9MnNF7NidmDPAJgUNC6qj6T-rM_DSKKH3tcJzO2YkF2rhLJEn_Uvh6pbcJq1GTKlxl8NNVab3RERStl6EXmjOxtVhMqZofFhN4z9Ib3Gx9Jdrt99lMCkVqteEys1MkW3gh_8VXGY1U-lGmvBp426LOKQ8_2QH4Ms-nTUBwGWTTy0X3JKDYY0aDv6-W9"/>
+</div>
+<div class="flex-grow">
+<div class="flex justify-between items-start mb-xs">
+<h3 class="font-title-md text-title-md text-on-surface">Margherita Pizza</h3>
+<span class="font-title-md text-title-md text-primary">₹320</span>
+</div>
+<div class="flex items-center gap-md">
+<div class="flex items-center border border-outline rounded-full px-2 py-1">
+<button class="w-8 h-8 flex items-center justify-center text-primary active-scale">
+<span class="material-symbols-outlined text-[20px]" data-icon="remove">remove</span>
+</button>
+<span class="px-3 font-title-md text-title-md">1</span>
+<button class="w-8 h-8 flex items-center justify-center text-primary active-scale">
+<span class="material-symbols-outlined text-[20px]" data-icon="add">add</span>
+</button>
+</div>
+<button class="text-error font-label-sm text-label-sm flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]" data-icon="delete">delete</span>
+                            Remove
+                        </button>
+</div>
+</div>
+</div>
+<!-- Item 2 -->
+<div class="item-card-shadow bg-surface-container-lowest rounded-xl p-md border border-outline-variant flex gap-md items-center">
+<div class="w-20 h-20 rounded-lg overflow-hidden flex-shrink-0">
+<img class="w-full h-full object-cover" data-alt="A macro close-up of crispy, golden Peri Peri Fries seasoned with vibrant red spice dust and garnished with fresh green parsley. The fries are presented in a minimalist, modern ceramic bowl. Soft, diffused natural lighting creates an inviting, tactile texture of the spices. High-end food styling with a focus on color saturation and sharp details of the seasoning particles." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAALMTyaxowo7ozGOpEDvWeNpxpBgQ4ycAp6rHB4NZqD2S08S6D3P2dxfTC6cis4xNFhIkKExmucBeSX4IsWdY7dstQwqGKSIkJJkBQqKFDjUV8a1zR4E_qijiJifHfdsJKOGfwu3iP-stpXRRjwTHNeksfFM0BIlWHLAbLyeEwcYHqSpRV7poD2BxOauDbRoUnxquuhdeIjPMPXvrutPuk90we5cnsMW50Af4qS-Q_9C6L6fSCa6_H"/>
+</div>
+<div class="flex-grow">
+<div class="flex justify-between items-start mb-xs">
+<h3 class="font-title-md text-title-md text-on-surface">Peri Peri Fries</h3>
+<span class="font-title-md text-title-md text-primary">₹118</span>
+</div>
+<div class="flex items-center gap-md">
+<div class="flex items-center border border-outline rounded-full px-2 py-1">
+<button class="w-8 h-8 flex items-center justify-center text-primary active-scale">
+<span class="material-symbols-outlined text-[20px]" data-icon="remove">remove</span>
+</button>
+<span class="px-3 font-title-md text-title-md">1</span>
+<button class="w-8 h-8 flex items-center justify-center text-primary active-scale">
+<span class="material-symbols-outlined text-[20px]" data-icon="add">add</span>
+</button>
+</div>
+<button class="text-error font-label-sm text-label-sm flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]" data-icon="delete">delete</span>
+                            Remove
+                        </button>
+</div>
+</div>
+</div>
+</section>
+<!-- Special Instructions -->
+<section class="mb-xl">
+<label class="font-title-md text-title-md text-on-surface mb-sm block">Special Instructions</label>
+<div class="relative">
+<textarea class="w-full bg-surface-container-lowest border border-outline-variant rounded-xl p-md font-body-md text-on-surface focus:border-primary transition-all duration-200 min-h-[100px] resize-none" placeholder="Add cooking instructions (e.g., make it extra spicy, no onions)"></textarea>
+<div class="absolute right-md bottom-md">
+<span class="material-symbols-outlined text-outline" data-icon="edit_note">edit_note</span>
+</div>
+</div>
+</section>
+<!-- Bill Details -->
+<section class="item-card-shadow bg-surface-container-lowest rounded-xl p-lg border border-outline-variant space-y-md mb-xl">
+<h3 class="font-title-md text-title-md text-on-surface mb-sm">Bill Details</h3>
+<div class="flex justify-between items-center text-on-surface-variant font-body-lg text-body-lg">
+<span>Subtotal</span>
+<span>₹438</span>
+</div>
+<div class="flex justify-between items-center text-on-surface-variant font-body-lg text-body-lg">
+<div class="flex items-center gap-xs">
+<span>Delivery Charge</span>
+<span class="material-symbols-outlined text-[16px]" data-icon="info">info</span>
+</div>
+<span>₹30</span>
+</div>
+<div class="flex justify-between items-center text-on-surface-variant font-body-lg text-body-lg">
+<span>Platform Fee</span>
+<span>₹5</span>
+</div>
+<div class="pt-md border-t border-dashed border-outline-variant flex justify-between items-center">
+<span class="font-headline-lg-mobile text-headline-lg-mobile font-bold text-on-surface">Grand Total</span>
+<span class="font-headline-lg-mobile text-headline-lg-mobile font-bold text-primary">₹473</span>
+</div>
+</section>
+<!-- Safety Notice / Offer -->
+<div class="bg-primary-container/10 border border-primary/20 rounded-xl p-md flex items-center gap-md mb-12">
+<div class="bg-primary-container p-2 rounded-full">
+<span class="material-symbols-outlined text-on-primary-container text-[24px]" data-icon="verified_user">verified_user</span>
+</div>
+<div>
+<p class="font-title-md text-title-md text-primary">Safe &amp; Clean Delivery</p>
+<p class="font-body-md text-on-primary-fixed-variant">All our staff follows strict hygiene protocols.</p>
+</div>
+</div>
+</main>
+<!-- Bottom Navigation Shell (Suppressed for Checkout flow, but kept as placeholder for Footer context) -->
+<div class="fixed bottom-0 left-0 w-full z-[60] floating-bar-shadow bg-surface/90 backdrop-blur-lg px-container-margin py-md flex flex-col items-center">
+<button class="w-full max-w-xl bg-primary text-on-primary font-title-md text-title-md h-14 rounded-full flex items-center justify-between px-lg active-scale transition-all shadow-lg hover:bg-primary-container hover:text-on-primary-container">
+<div class="flex flex-col items-start leading-tight">
+<span class="text-[10px] uppercase tracking-wider opacity-80">Total Payable</span>
+<span>₹473</span>
+</div>
+<div class="flex items-center gap-xs">
+<span>Continue</span>
+<span class="material-symbols-outlined" data-icon="arrow_forward">arrow_forward</span>
+</div>
+</button>
+</div>
+<!-- Script for Micro-interactions -->
+<script>
+        document.querySelectorAll('button').forEach(btn => {
+            btn.addEventListener('click', function() {
+                // Haptic feedback simulation
+                if (window.navigator.vibrate) {
+                    window.navigator.vibrate(10);
+                }
+            });
+        });
+
+        // Simple scroll reveal for the footer bar shadow
+        window.addEventListener('scroll', () => {
+            const footer = document.querySelector('.floating-bar-shadow');
+            if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 50) {
+                footer.classList.remove('floating-bar-shadow');
+                footer.classList.add('border-t', 'border-outline-variant');
+            } else {
+                footer.classList.add('floating-bar-shadow');
+                footer.classList.remove('border-t', 'border-outline-variant');
+            }
+        });
+    </script>
+</body></html>

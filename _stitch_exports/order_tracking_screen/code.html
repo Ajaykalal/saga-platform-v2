@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Saga Cafe - Order Tracking</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-tertiary-fixed": "#40000f",
+                        "outline-variant": "#bdcabc",
+                        "primary-fixed-dim": "#64dd91",
+                        "on-surface-variant": "#3e4a3f",
+                        "surface-dim": "#d3daea",
+                        "tertiary-fixed": "#ffdadb",
+                        "surface-tint": "#006d3a",
+                        "tertiary-container": "#c24d5e",
+                        "on-error": "#ffffff",
+                        "on-background": "#151c27",
+                        "surface-container-high": "#e2e8f8",
+                        "on-error-container": "#93000a",
+                        "primary": "#006a39",
+                        "on-secondary-fixed-variant": "#404758",
+                        "error": "#ba1a1a",
+                        "on-tertiary": "#ffffff",
+                        "on-secondary-fixed": "#141b2b",
+                        "on-surface": "#151c27",
+                        "inverse-surface": "#2a313d",
+                        "tertiary-fixed-dim": "#ffb2b8",
+                        "surface-bright": "#f9f9ff",
+                        "on-primary-container": "#f6fff4",
+                        "tertiary": "#a23546",
+                        "secondary-container": "#d9dff5",
+                        "secondary": "#575e70",
+                        "surface": "#f9f9ff",
+                        "on-secondary-container": "#5c6274",
+                        "surface-variant": "#dce2f3",
+                        "on-tertiary-container": "#fffbff",
+                        "error-container": "#ffdad6",
+                        "surface-container-highest": "#dce2f3",
+                        "inverse-on-surface": "#ebf1ff",
+                        "on-primary-fixed-variant": "#00522b",
+                        "secondary-fixed-dim": "#c0c6db",
+                        "on-primary": "#ffffff",
+                        "primary-container": "#008649",
+                        "surface-container": "#e7eefe",
+                        "on-primary-fixed": "#00210e",
+                        "inverse-primary": "#64dd91",
+                        "on-secondary": "#ffffff",
+                        "primary-fixed": "#82faab",
+                        "surface-container-low": "#f0f3ff",
+                        "secondary-fixed": "#dce2f7",
+                        "background": "#f9f9ff",
+                        "on-tertiary-fixed-variant": "#851f33",
+                        "outline": "#6d7a6f",
+                        "surface-container-lowest": "#ffffff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "sm": "12px",
+                        "xl": "32px",
+                        "base": "4px",
+                        "lg": "24px",
+                        "md": "16px",
+                        "gutter": "16px",
+                        "xs": "8px",
+                        "container-margin": "20px"
+                    },
+                    "fontFamily": {
+                        "body-lg": ["Inter"],
+                        "title-md": ["Inter"],
+                        "headline-lg-mobile": ["Inter"],
+                        "headline-lg": ["Inter"],
+                        "label-sm": ["Inter"],
+                        "display": ["Inter"],
+                        "body-md": ["Inter"]
+                    },
+                    "fontSize": {
+                        "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "title-md": ["18px", { "lineHeight": "24px", "fontWeight": "600" }],
+                        "headline-lg-mobile": ["20px", { "lineHeight": "28px", "fontWeight": "700" }],
+                        "headline-lg": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "700" }],
+                        "label-sm": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "display": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .timeline-line {
+            width: 2px;
+            background: #E5E7EB;
+            position: absolute;
+            top: 24px;
+            bottom: 24px;
+            left: 11px;
+            z-index: 0;
+        }
+        .timeline-line-active {
+            background: #006a39;
+            height: 40%;
+        }
+        .pulse-emerald {
+            box-shadow: 0 0 0 0 rgba(0, 106, 57, 0.4);
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 106, 57, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(0, 106, 57, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 106, 57, 0); }
+        }
+    </style>
+</head>
+<body class="bg-surface-container-lowest text-on-surface font-body-md antialiased min-h-screen pb-32">
+<!-- TopAppBar -->
+<header class="bg-surface/80 dark:bg-surface-dim/80 backdrop-blur-md sticky top-0 docked full-width z-50 shadow-sm flex justify-between items-center w-full px-container-margin py-md">
+<div class="flex items-center gap-xs">
+<span class="material-symbols-outlined text-primary" data-icon="restaurant">restaurant</span>
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile font-bold text-primary dark:text-primary-fixed-dim">Saga Cafe</h1>
+</div>
+<div class="px-md py-xs bg-surface-container rounded-full flex items-center gap-xs">
+<span class="material-symbols-outlined text-primary text-[14px]" data-icon="timer">timer</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Open Now • 25 min</span>
+</div>
+</header>
+<main class="max-w-md mx-auto mt-lg px-container-margin">
+<!-- Order Identity Section -->
+<section class="mb-xl animate-in fade-in slide-in-from-bottom-4 duration-700">
+<div class="flex flex-col gap-xs mb-md">
+<span class="font-label-sm text-label-sm uppercase tracking-widest text-outline">Order #SC-88219</span>
+<h2 class="font-display text-display text-on-surface">Arriving in <span class="text-primary">12 mins</span></h2>
+</div>
+<!-- Hero Image / Visual Anchor (Subtle) -->
+<div class="relative w-full h-48 rounded-xl overflow-hidden shadow-sm mb-lg">
+<div class="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent z-10"></div>
+<img class="w-full h-full object-cover" data-alt="A premium high-resolution close-up of a perfectly crafted latte with intricate foam art next to a warm, flaky almond croissant. The scene is set on a minimalist white marble table in a brightly lit, high-end modern cafe. The lighting is soft and airy with emerald green accents in the background, conveying a sophisticated and welcoming mood for Saga Cafe." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDekiS28ObroXztSkeA2tNjqrPVzsawc7im2nNKMAWFDPvXjiklqKDRVA7VIRG7Ol15yGxnvu7Sz7mseAgwdT4M2f6LN2oxBUZsx8bMDsvxy2luNuTJ5vwOJrBVap0L2gppZq5OlZ0NMuFkQIu0U7o5ed2nSdn0MxmQsnS9BppLElXyM8nCp7CcUF3cEaP06IroNr1_M8_YGgmijKS8AVIaw3G8I9iXye6NROCbh76ZNo1IPs0P9gbN"/>
+<div class="absolute bottom-md left-md z-20 flex items-center gap-xs text-white">
+<span class="material-symbols-outlined text-[18px]" data-icon="oven_gen">oven_gen</span>
+<span class="font-title-md text-title-md">Chef is finishing your meal</span>
+</div>
+</div>
+</section>
+<!-- Vertical Status Timeline -->
+<section class="bg-white rounded-xl p-lg shadow-[0px_4px_20px_rgba(0,0,0,0.05)] relative mb-lg">
+<div class="timeline-line">
+<div class="timeline-line-active w-full"></div>
+</div>
+<div class="space-y-lg relative z-10">
+<!-- Status: Order Placed -->
+<div class="flex items-start gap-md">
+<div class="w-6 h-6 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
+<span class="material-symbols-outlined text-white text-[16px]" data-icon="check">check</span>
+</div>
+<div class="flex flex-col">
+<span class="font-title-md text-title-md text-on-surface">Order Placed</span>
+<span class="font-body-md text-body-md text-outline">12:45 PM</span>
+</div>
+</div>
+<!-- Status: Accepted -->
+<div class="flex items-start gap-md">
+<div class="w-6 h-6 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
+<span class="material-symbols-outlined text-white text-[16px]" data-icon="check">check</span>
+</div>
+<div class="flex flex-col">
+<span class="font-title-md text-title-md text-on-surface">Accepted</span>
+<span class="font-body-md text-body-md text-outline">12:46 PM</span>
+</div>
+</div>
+<!-- Status: Preparing (Active) -->
+<div class="flex items-start gap-md">
+<div class="w-6 h-6 rounded-full bg-primary pulse-emerald flex items-center justify-center flex-shrink-0 ring-4 ring-primary-container/20">
+<div class="w-2.5 h-2.5 bg-white rounded-full"></div>
+</div>
+<div class="flex flex-col">
+<span class="font-title-md text-title-md text-primary">Preparing your order</span>
+<span class="font-body-md text-body-md text-on-surface-variant italic">Chef Marco is preparing your sourdough toast...</span>
+</div>
+</div>
+<!-- Status: Ready -->
+<div class="flex items-start gap-md opacity-40">
+<div class="w-6 h-6 rounded-full bg-surface-container flex items-center justify-center flex-shrink-0">
+<div class="w-2.5 h-2.5 bg-outline rounded-full"></div>
+</div>
+<div class="flex flex-col">
+<span class="font-title-md text-title-md text-on-surface">Ready for Pickup</span>
+<span class="font-body-md text-body-md text-outline">Wait for the notification</span>
+</div>
+</div>
+<!-- Status: Out for Delivery -->
+<div class="flex items-start gap-md opacity-40">
+<div class="w-6 h-6 rounded-full bg-surface-container flex items-center justify-center flex-shrink-0">
+<div class="w-2.5 h-2.5 bg-outline rounded-full"></div>
+</div>
+<div class="flex flex-col">
+<span class="font-title-md text-title-md text-on-surface">Out for Delivery</span>
+<span class="font-body-md text-body-md text-outline">Your rider is coming</span>
+</div>
+</div>
+<!-- Status: Delivered -->
+<div class="flex items-start gap-md opacity-40">
+<div class="w-6 h-6 rounded-full bg-surface-container flex items-center justify-center flex-shrink-0">
+<div class="w-2.5 h-2.5 bg-outline rounded-full"></div>
+</div>
+<div class="flex flex-col">
+<span class="font-title-md text-title-md text-on-surface">Delivered</span>
+<span class="font-body-md text-body-md text-outline">Enjoy your Saga Cafe experience</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Action Button -->
+<div class="flex gap-md mb-xl">
+<button class="flex-1 h-12 bg-primary text-white rounded-xl font-title-md flex items-center justify-center gap-xs active:scale-95 transition-all shadow-md hover:bg-primary-container">
+<span class="material-symbols-outlined text-[20px]" data-icon="call">call</span>
+                Call Cafe
+            </button>
+<button class="w-12 h-12 border border-outline-variant rounded-xl flex items-center justify-center text-on-surface-variant active:scale-95 transition-all hover:bg-surface-container">
+<span class="material-symbols-outlined" data-icon="help_outline">help_outline</span>
+</button>
+</div>
+<!-- Order Summary Glass Card -->
+<section class="bg-secondary-container/30 backdrop-blur-sm rounded-xl p-md border border-white/50 mb-lg">
+<div class="flex justify-between items-center mb-sm">
+<h3 class="font-label-sm text-label-sm text-on-secondary-container uppercase">Items Summary</h3>
+<span class="font-label-sm text-label-sm text-primary">2 Items</span>
+</div>
+<div class="space-y-xs">
+<div class="flex justify-between text-body-md">
+<span class="text-on-surface">1x Signature Sourdough Avocado Toast</span>
+<span class="font-semibold">$14.50</span>
+</div>
+<div class="flex justify-between text-body-md">
+<span class="text-on-surface">1x Cold Brew Coffee (L)</span>
+<span class="font-semibold">$6.00</span>
+</div>
+</div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-xs py-sm bg-surface dark:bg-surface-container-lowest border-t border-outline-variant dark:border-outline shadow-[0px_-4px_20px_rgba(0,0,0,0.05)] rounded-t-xl">
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-outline-variant px-4 py-1 hover:opacity-80 transition-opacity" href="#">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+<span class="font-label-sm text-label-sm">Home</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-outline-variant px-4 py-1 hover:opacity-80 transition-opacity" href="#">
+<span class="material-symbols-outlined" data-icon="menu_book">menu_book</span>
+<span class="font-label-sm text-label-sm">Menu</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-outline-variant px-4 py-1 hover:opacity-80 transition-opacity" href="#">
+<span class="material-symbols-outlined" data-icon="shopping_cart">shopping_cart</span>
+<span class="font-label-sm text-label-sm">Cart</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-primary-container dark:bg-primary text-on-primary-container dark:text-on-primary rounded-full px-4 py-1 active:scale-[0.98] transition-transform duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="receipt_long">receipt_long</span>
+<span class="font-label-sm text-label-sm">Orders</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-outline-variant px-4 py-1 hover:opacity-80 transition-opacity" href="#">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="font-label-sm text-label-sm">Profile</span>
+</a>
+</nav>
+<script>
+        // Micro-interaction: Subtle parallax on scroll for header
+        window.addEventListener('scroll', () => {
+            const header = document.querySelector('header');
+            if (window.scrollY > 20) {
+                header.classList.add('shadow-md');
+                header.classList.remove('shadow-sm');
+            } else {
+                header.classList.remove('shadow-md');
+                header.classList.add('shadow-sm');
+            }
+        });
+    </script>
+</body></html>

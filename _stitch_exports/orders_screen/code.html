@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Saga Cafe - My Orders</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-tertiary-fixed": "#40000f",
+                    "outline-variant": "#bdcabc",
+                    "primary-fixed-dim": "#64dd91",
+                    "on-surface-variant": "#3e4a3f",
+                    "surface-dim": "#d3daea",
+                    "tertiary-fixed": "#ffdadb",
+                    "surface-tint": "#006d3a",
+                    "tertiary-container": "#c24d5e",
+                    "on-error": "#ffffff",
+                    "on-background": "#151c27",
+                    "surface-container-high": "#e2e8f8",
+                    "on-error-container": "#93000a",
+                    "primary": "#006a39",
+                    "on-secondary-fixed-variant": "#404758",
+                    "error": "#ba1a1a",
+                    "on-tertiary": "#ffffff",
+                    "on-secondary-fixed": "#141b2b",
+                    "on-surface": "#151c27",
+                    "inverse-surface": "#2a313d",
+                    "tertiary-fixed-dim": "#ffb2b8",
+                    "surface-bright": "#f9f9ff",
+                    "on-primary-container": "#f6fff4",
+                    "tertiary": "#a23546",
+                    "secondary-container": "#d9dff5",
+                    "secondary": "#575e70",
+                    "surface": "#f9f9ff",
+                    "on-secondary-container": "#5c6274",
+                    "surface-variant": "#dce2f3",
+                    "on-tertiary-container": "#fffbff",
+                    "error-container": "#ffdad6",
+                    "surface-container-highest": "#dce2f3",
+                    "inverse-on-surface": "#ebf1ff",
+                    "on-primary-fixed-variant": "#00522b",
+                    "secondary-fixed-dim": "#c0c6db",
+                    "on-primary": "#ffffff",
+                    "primary-container": "#008649",
+                    "surface-container": "#e7eefe",
+                    "on-primary-fixed": "#00210e",
+                    "inverse-primary": "#64dd91",
+                    "on-secondary": "#ffffff",
+                    "primary-fixed": "#82faab",
+                    "surface-container-low": "#f0f3ff",
+                    "secondary-fixed": "#dce2f7",
+                    "background": "#f9f9ff",
+                    "on-tertiary-fixed-variant": "#851f33",
+                    "outline": "#6d7a6f",
+                    "surface-container-lowest": "#ffffff"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "sm": "12px",
+                    "xl": "32px",
+                    "base": "4px",
+                    "lg": "24px",
+                    "md": "16px",
+                    "gutter": "16px",
+                    "xs": "8px",
+                    "container-margin": "20px"
+            },
+            "fontFamily": {
+                    "body-lg": ["Inter"],
+                    "title-md": ["Inter"],
+                    "headline-lg-mobile": ["Inter"],
+                    "headline-lg": ["Inter"],
+                    "label-sm": ["Inter"],
+                    "display": ["Inter"],
+                    "body-md": ["Inter"]
+            },
+            "fontSize": {
+                    "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "title-md": ["18px", {"lineHeight": "24px", "fontWeight": "600"}],
+                    "headline-lg-mobile": ["20px", {"lineHeight": "28px", "fontWeight": "700"}],
+                    "headline-lg": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                    "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "display": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            background-color: #f9f9ff;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .order-card-shadow {
+            box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.05);
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .active-nav-bg {
+            background-color: #008649; /* primary-container */
+            color: #f6fff4; /* on-primary-container */
+        }
+        /* Custom scroll behavior for the order list */
+        .smooth-scroll {
+            scroll-behavior: smooth;
+        }
+    </style>
+</head>
+<body class="font-body-md text-on-surface">
+<!-- Top AppBar -->
+<header class="bg-surface/80 dark:bg-surface-dim/80 backdrop-blur-md shadow-sm docked full-width top-0 sticky flex justify-between items-center w-full px-container-margin py-md z-50">
+<div class="flex items-center gap-xs">
+<span class="material-symbols-outlined text-primary" data-icon="restaurant">restaurant</span>
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile font-bold text-primary">Saga Cafe</h1>
+</div>
+<div class="flex items-center">
+<span class="font-label-sm text-label-sm text-primary">Open Now • 25 min</span>
+</div>
+</header>
+<main class="min-h-screen pb-32">
+<!-- Page Title & Stats Area -->
+<section class="px-container-margin pt-lg pb-md">
+<div class="flex flex-col gap-xs">
+<h2 class="font-headline-lg text-headline-lg text-on-background">Your Orders</h2>
+<p class="font-body-md text-on-surface-variant">Revisit your culinary journey with Saga Cafe.</p>
+</div>
+<!-- Quick Filter Chips -->
+<div class="flex gap-sm mt-md overflow-x-auto no-scrollbar py-xs">
+<span class="px-md py-xs bg-primary text-on-primary rounded-full font-label-sm text-label-sm whitespace-nowrap">All Orders</span>
+<span class="px-md py-xs bg-surface-container text-on-surface-variant rounded-full border border-outline-variant font-label-sm text-label-sm whitespace-nowrap">Delivered</span>
+<span class="px-md py-xs bg-surface-container text-on-surface-variant rounded-full border border-outline-variant font-label-sm text-label-sm whitespace-nowrap">Cancelled</span>
+</div>
+</section>
+<!-- Orders List Container -->
+<section class="px-container-margin flex flex-col gap-lg">
+<!-- Order Card 1 -->
+<div class="order-card-shadow bg-surface-container-lowest rounded-xl overflow-hidden border border-outline-variant/30 flex flex-col">
+<div class="p-md flex gap-md">
+<div class="w-24 h-24 shrink-0 rounded-lg overflow-hidden bg-surface-container">
+<img class="w-full h-full object-cover" data-alt="A top-down professional food photograph of a gourmet avocado toast with poached eggs and microgreens on a handcrafted ceramic plate. The lighting is bright and airy, following a minimalist light-mode aesthetic with soft shadows and high-end urban cafe vibes. Emerald green accents are visible in the garnish." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBKOlHSeCK3zcgqYpJzS0oHZofiumvswLqas-KF4HIl_SbHvVPHYU7AllPhIAVLS8eb-bKxPyzIo8EFXrofwD3a0PCEwYUVXKXjVimyev_-dYuQPup7udh0UnFKXhArbn1KqCA1iMpaHNZs2h2_hQOVbwcWYVlcLxVclfhXYTFkPjUXNI-i0kga6C_bD3I3R9oVacOciKRvUMOkx9G38yRhUMWHYbhE7_X3VdeC7-SmxznA3sqz4gkR"/>
+</div>
+<div class="flex flex-col justify-between flex-1">
+<div>
+<div class="flex justify-between items-start">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">12 Oct</span>
+<div class="bg-primary-container/10 px-xs py-1 rounded text-primary flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<span class="font-label-sm text-[10px] uppercase font-bold">Delivered</span>
+</div>
+</div>
+<h3 class="font-title-md text-title-md text-on-surface mt-1">Smashed Avocado &amp; Espresso</h3>
+<p class="font-body-md text-on-surface-variant text-sm">2 Items • Order #SAGA-8821</p>
+</div>
+<div class="flex justify-between items-center mt-sm">
+<span class="font-headline-lg-mobile text-primary">₹349</span>
+</div>
+</div>
+</div>
+<div class="bg-surface-container-low px-md py-sm flex justify-between items-center border-t border-outline-variant/20">
+<button class="flex items-center gap-xs text-primary font-label-sm text-label-sm active:scale-95 transition-transform">
+<span class="material-symbols-outlined text-[18px]">info</span>
+                        Details
+                    </button>
+<button class="bg-primary text-on-primary px-lg py-sm rounded-full font-label-sm text-label-sm shadow-md active:scale-[0.98] transition-all flex items-center gap-xs">
+<span class="material-symbols-outlined text-[18px]">replay</span>
+                        Repeat Order
+                    </button>
+</div>
+</div>
+<!-- Order Card 2 -->
+<div class="order-card-shadow bg-surface-container-lowest rounded-xl overflow-hidden border border-outline-variant/30 flex flex-col">
+<div class="p-md flex gap-md">
+<div class="w-24 h-24 shrink-0 rounded-lg overflow-hidden bg-surface-container">
+<img class="w-full h-full object-cover" data-alt="A macro shot of a rich, tiered chocolate truffle cake drizzled with gold leaf, served in a high-end minimalist urban cafe. The setting is clean with white marble textures and emerald green velvet backgrounds. Soft diffused morning light creates a premium and sophisticated atmosphere." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBg8IO-9GlGifrSE0b7FIFbg9IZsay42IwMw4PcqsyYAh3vG5nH2PPQ8xyU42Xq6eLLXD-0oaTgbmUIkFz051FKp4AF3V00QHaqvZNH3OBhkimN2KGzppIGasYsDGI_sa-GORzl_7QIOBuOpjlCiNabEkN2dNUq88B722XUtR1Gqrw5Lwudp9QA1aJSDHJDaNhKJP_D8qgvJGo4i2zuL_ch9N0EklsoAH3MfVF94YmuE1VLjL002b4O"/>
+</div>
+<div class="flex flex-col justify-between flex-1">
+<div>
+<div class="flex justify-between items-start">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">08 Oct</span>
+<div class="bg-primary-container/10 px-xs py-1 rounded text-primary flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<span class="font-label-sm text-[10px] uppercase font-bold">Delivered</span>
+</div>
+</div>
+<h3 class="font-title-md text-title-md text-on-surface mt-1">Dark Truffle Gateau</h3>
+<p class="font-body-md text-on-surface-variant text-sm">1 Item • Order #SAGA-8754</p>
+</div>
+<div class="flex justify-between items-center mt-sm">
+<span class="font-headline-lg-mobile text-primary">₹520</span>
+</div>
+</div>
+</div>
+<div class="bg-surface-container-low px-md py-sm flex justify-between items-center border-t border-outline-variant/20">
+<button class="flex items-center gap-xs text-primary font-label-sm text-label-sm active:scale-95 transition-transform">
+<span class="material-symbols-outlined text-[18px]">info</span>
+                        Details
+                    </button>
+<button class="bg-primary text-on-primary px-lg py-sm rounded-full font-label-sm text-label-sm shadow-md active:scale-[0.98] transition-all flex items-center gap-xs">
+<span class="material-symbols-outlined text-[18px]">replay</span>
+                        Repeat Order
+                    </button>
+</div>
+</div>
+<!-- Order Card 3 -->
+<div class="order-card-shadow bg-surface-container-lowest rounded-xl overflow-hidden border border-outline-variant/30 flex flex-col">
+<div class="p-md flex gap-md">
+<div class="w-24 h-24 shrink-0 rounded-lg overflow-hidden bg-surface-container">
+<img class="w-full h-full object-cover" data-alt="A modern bowl of artisanal ramen with bamboo shoots, nori, and a perfectly soft-boiled egg. The bowl is set against a clean, light wood tabletop in a high-end metropolitan cafe. The aesthetic is tactile and minimalist with a palette of whites, creams, and emerald green accents in the bowl's design." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCGFe5_mfKQIayuJNuyUJ3T7Uz_nC534PQhFR_7Co8o8l5rHfUcRK9GaTXFzh-rrIHBDKNip17mnPWz_eo-s3eahAQRDDnQLm6ANlxyZlVHQQxtOgu4U7XFTfXMtJHHFOB5L42VfTHOf6yTSYcaHgq8jHGin13fCnWn7dicweee_fX_4X7RTTU8pG9Ck5uxFHUse8oMotMj__Hlk3CjWUokkLW78MpPzNRWmC4pjQCLDYTm8XheLdv6"/>
+</div>
+<div class="flex flex-col justify-between flex-1">
+<div>
+<div class="flex justify-between items-start">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">30 Sep</span>
+<div class="bg-primary-container/10 px-xs py-1 rounded text-primary flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<span class="font-label-sm text-[10px] uppercase font-bold">Delivered</span>
+</div>
+</div>
+<h3 class="font-title-md text-title-md text-on-surface mt-1">Shoyu Ramen Special</h3>
+<p class="font-body-md text-on-surface-variant text-sm">3 Items • Order #SAGA-8622</p>
+</div>
+<div class="flex justify-between items-center mt-sm">
+<span class="font-headline-lg-mobile text-primary">₹899</span>
+</div>
+</div>
+</div>
+<div class="bg-surface-container-low px-md py-sm flex justify-between items-center border-t border-outline-variant/20">
+<button class="flex items-center gap-xs text-primary font-label-sm text-label-sm active:scale-95 transition-transform">
+<span class="material-symbols-outlined text-[18px]">info</span>
+                        Details
+                    </button>
+<button class="bg-primary text-on-primary px-lg py-sm rounded-full font-label-sm text-label-sm shadow-md active:scale-[0.98] transition-all flex items-center gap-xs">
+<span class="material-symbols-outlined text-[18px]">replay</span>
+                        Repeat Order
+                    </button>
+</div>
+</div>
+<!-- Suggestion Section -->
+<div class="mt-lg p-lg rounded-2xl bg-secondary-container/30 border border-secondary-container/50 relative overflow-hidden">
+<div class="relative z-10">
+<h4 class="font-title-md text-title-md text-on-secondary-container">Craving something new?</h4>
+<p class="font-body-md text-on-secondary-container/80 mt-1">Based on your favorites, you might enjoy our Seasonal Harvest Salad.</p>
+<button class="mt-md px-lg py-xs bg-secondary text-on-secondary rounded-full font-label-sm text-label-sm hover:opacity-90 transition-opacity">
+                        Explore Menu
+                    </button>
+</div>
+<span class="material-symbols-outlined absolute -right-4 -bottom-4 text-secondary-container text-8xl opacity-30 select-none">local_dining</span>
+</div>
+</section>
+</main>
+<!-- Bottom Navigation Bar (The Anchor) -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-xs py-sm bg-surface dark:bg-surface-container-lowest shadow-[0px_-4px_20px_rgba(0,0,0,0.05)] rounded-t-xl border-t border-outline-variant">
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-outline-variant px-4 py-1 hover:opacity-80 transition-opacity" href="#">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+<span class="font-label-sm text-label-sm">Home</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-outline-variant px-4 py-1 hover:opacity-80 transition-opacity" href="#">
+<span class="material-symbols-outlined" data-icon="menu_book">menu_book</span>
+<span class="font-label-sm text-label-sm">Menu</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-outline-variant px-4 py-1 hover:opacity-80 transition-opacity relative" href="#">
+<span class="material-symbols-outlined" data-icon="shopping_cart">shopping_cart</span>
+<span class="font-label-sm text-label-sm">Cart</span>
+<span class="absolute top-0 right-2 w-2 h-2 bg-error rounded-full"></span>
+</a>
+<a class="flex flex-col items-center justify-center bg-primary-container dark:bg-primary text-on-primary-container dark:text-on-primary rounded-full px-4 py-1 scale-[0.98] transition-transform duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="receipt_long" style="font-variation-settings: 'FILL' 1;">receipt_long</span>
+<span class="font-label-sm text-label-sm">Orders</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-outline-variant px-4 py-1 hover:opacity-80 transition-opacity" href="#">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="font-label-sm text-label-sm">Profile</span>
+</a>
+</nav>
+<script>
+        // Micro-interaction for Repeat Order buttons
+        document.querySelectorAll('button').forEach(btn => {
+            btn.addEventListener('touchstart', function() {
+                this.classList.add('scale-95');
+            });
+            btn.addEventListener('touchend', function() {
+                this.classList.remove('scale-95');
+            });
+        });
+
+        // Simple Fade-in effect for cards on load
+        window.addEventListener('DOMContentLoaded', () => {
+            const cards = document.querySelectorAll('.order-card-shadow');
+            cards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                card.style.transition = `all 0.5s ease-out ${index * 0.1}s`;
+                
+                setTimeout(() => {
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, 50);
+            });
+        });
+    </script>
+</body></html>
