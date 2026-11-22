@@ -135,7 +135,7 @@ export default function Home() {
       {/* Top Navbar */}
       <Navbar />
 
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 pt-5 pb-12 space-y-6">
+      <main className="max-w-4xl mx-auto px-4 sm:px-6 pt-6 sm:pt-8 pb-32 sm:pb-24 space-y-6">
         {/* Active In-Transit Order Banner (Persistent across app re-opens) */}
         {activeOrder && (
           <div className="bg-emerald-600 text-white rounded-2xl p-4 shadow-lg flex items-center justify-between animate-fadeIn border border-emerald-500/50">
@@ -235,15 +235,15 @@ export default function Home() {
         </section>
 
         {/* Category Horizontal Chips (Matching Stitch home_screen line 146) */}
-        <section className="py-1 overflow-x-auto hide-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0">
-          <div className="flex gap-2 min-w-max">
+        <section className="relative w-full overflow-hidden py-1">
+          <div className="flex gap-2 overflow-x-auto hide-scrollbar scroll-smooth px-1 pr-8 sm:pr-1 min-w-full">
             {CATEGORIES.map((cat) => {
               const isActive = selectedCategory.toLowerCase() === cat.toLowerCase()
               return (
                 <button
                   key={cat}
                   onClick={() => setSelectedCategory(cat)}
-                  className={`px-4 py-2 rounded-full text-xs font-bold transition-all tap-feedback cursor-pointer ${
+                  className={`px-4 py-2 rounded-full text-xs font-bold transition-all tap-feedback cursor-pointer shrink-0 ${
                     isActive
                       ? 'bg-emerald-600 text-white shadow-xs'
                       : 'bg-white border border-gray-200 text-gray-600 hover:border-emerald-400 hover:text-emerald-700'
@@ -254,6 +254,8 @@ export default function Home() {
               )
             })}
           </div>
+          {/* Edge fade mask on mobile */}
+          <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-[#F9FAFB] to-transparent sm:hidden" />
         </section>
 
         {/* Multi-Cafe Storefront Directory (Requirement 3: Multi-Cafe Storefront) */}

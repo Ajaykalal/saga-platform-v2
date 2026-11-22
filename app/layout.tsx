@@ -28,8 +28,8 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className="h-full antialiased">
-      <body className="min-h-full flex flex-col font-sans bg-[#F9FAFB] text-[#151C27] pb-24">
+    <html lang="en" className="h-full antialiased overflow-x-hidden">
+      <body className="min-h-full flex flex-col font-sans bg-[#F9FAFB] text-[#151C27] overflow-x-hidden w-full max-w-full">
         <Providers>{children}</Providers>
       </body>
     </html>

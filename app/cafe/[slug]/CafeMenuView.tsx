@@ -97,7 +97,7 @@ export default function CafeMenuView({ cafe, menuItems }: CafeMenuViewProps) {
         showBack={true}
       />
 
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 pt-4 space-y-6">
+      <main className="max-w-4xl mx-auto px-4 sm:px-6 pt-4 pb-36 sm:pb-24 space-y-6">
         {/* Closed Store Banner Alert */}
         {!liveCafe.is_open && (
           <div className="bg-rose-50 border border-rose-200 rounded-2xl p-4 flex items-center gap-3 text-rose-900 shadow-xs animate-slideIn">
@@ -193,7 +193,7 @@ export default function CafeMenuView({ cafe, menuItems }: CafeMenuViewProps) {
         </section>
 
         {/* Search within menu & Category Tabs (Matching Stitch menu_screen line 130) */}
-        <section className="sticky top-16 z-30 bg-[#F9FAFB]/95 backdrop-blur-md pt-2 pb-3 -mx-4 px-4 sm:mx-0 sm:px-0 space-y-3">
+        <section className="sticky top-14 sm:top-16 z-30 bg-[#F9FAFB]/95 backdrop-blur-md pt-2 pb-3 -mx-4 px-4 sm:mx-0 sm:px-0 space-y-3">
           {/* Menu Search */}
           <div className="relative">
             <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />

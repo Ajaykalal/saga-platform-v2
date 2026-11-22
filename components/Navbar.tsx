@@ -47,17 +47,17 @@ export default function Navbar({
 
   return (
     <header className="sticky top-0 left-0 w-full z-40 bg-white/85 backdrop-blur-md border-b border-gray-100 shadow-xs transition-all">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+      <div className="max-w-5xl mx-auto px-3 sm:px-6 h-14 sm:h-16 flex items-center justify-between gap-1.5 sm:gap-3 w-full">
         {/* Brand or Back */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
           {showBack && (
             <Link
               href="/"
-              className="w-9 h-9 rounded-full bg-gray-50 flex items-center justify-center text-gray-700 hover:bg-gray-100 transition-colors tap-feedback"
+              className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-gray-50 flex items-center justify-center text-gray-700 hover:bg-gray-100 transition-colors tap-feedback shrink-0"
               aria-label="Back to storefront"
             >
               <svg
-                className="w-5 h-5"
+                className="w-4 h-4 sm:w-5 sm:h-5"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -72,37 +72,37 @@ export default function Navbar({
             </Link>
           )}
 
-          <Link href="/" className="flex items-center gap-2 group">
-            <div className="w-9 h-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-xs group-hover:bg-emerald-700 transition-colors">
-              <Utensils className="w-5 h-5 text-white" />
+          <Link href="/" className="flex items-center gap-2 group min-w-0">
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-xs group-hover:bg-emerald-700 transition-colors shrink-0">
+              <Utensils className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
             </div>
-            <div className="flex flex-col">
-              <span className="font-extrabold text-lg tracking-tight text-gray-900 leading-tight">
+            <div className="flex flex-col min-w-0">
+              <span className="font-extrabold text-base sm:text-lg tracking-tight text-gray-900 leading-tight truncate max-w-[110px] xs:max-w-[140px] sm:max-w-[220px]">
                 {cafeName ? cafeName : 'FoodLo'}
               </span>
-              <span className="text-[11px] font-medium text-emerald-600 flex items-center gap-1">
-                <MapPin className="w-3 h-3 text-emerald-500" />
-                Sagwara • Local Food Delivery
+              <span className="text-[10px] sm:text-[11px] font-medium text-emerald-600 flex items-center gap-1 truncate max-w-[110px] xs:max-w-[140px] sm:max-w-none">
+                <MapPin className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-emerald-500 shrink-0" />
+                Sagwara
               </span>
             </div>
           </Link>
         </div>
 
         {/* Right Status & Actions */}
-        <div className="flex items-center gap-2 sm:gap-3">
+        <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
           {/* Active Delivery Address Pill */}
           <button
             type="button"
             onClick={() => setIsAddressModalOpen(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-50 hover:bg-emerald-50 text-slate-700 hover:text-emerald-800 border border-slate-200 hover:border-emerald-300 transition-all text-xs font-semibold cursor-pointer max-w-[150px] sm:max-w-[210px] truncate"
+            className="flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full bg-slate-50 hover:bg-emerald-50 text-slate-700 hover:text-emerald-800 border border-slate-200 hover:border-emerald-300 transition-all text-xs font-semibold cursor-pointer max-w-[100px] xs:max-w-[130px] sm:max-w-[210px] truncate"
             title="Change Delivery Address"
           >
-            <MapPin className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-            <span className="truncate">
+            <MapPin className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-emerald-600 shrink-0" />
+            <span className="truncate text-[11px] sm:text-xs">
               <strong className="text-slate-900">{activeAddress?.label || 'Deliver'}:</strong>{' '}
-              {activeAddress?.area_street?.split(',')[0] || 'Koramangala'}
+              {activeAddress?.area_street?.split(',')[0] || 'Sagwara'}
             </span>
-            <ChevronDown className="w-3 h-3 text-slate-400 shrink-0" />
+            <ChevronDown className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-slate-400 shrink-0" />
           </button>
 
           {/* Operating Status Pill */}
@@ -121,20 +121,21 @@ export default function Navbar({
           {/* Role Portal / Profile Link */}
           <Link
             href={portalInfo.href}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-50 hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 border border-slate-200 hover:border-emerald-200 transition-all text-xs font-bold tap-feedback"
+            className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full bg-slate-50 hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 border border-slate-200 hover:border-emerald-200 transition-all text-xs font-bold tap-feedback"
+            title={portalInfo.label}
           >
-            <PortalIcon className="w-4 h-4 text-emerald-600" />
-            <span className="hidden sm:inline">{portalInfo.label}</span>
+            <PortalIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-600" />
+            <span className="hidden md:inline">{portalInfo.label}</span>
           </Link>
 
           {/* Cart Trigger */}
           <button
             onClick={openCart}
-            className="relative flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-gray-50 hover:bg-emerald-50 hover:text-emerald-700 border border-gray-200 hover:border-emerald-200 transition-all tap-feedback cursor-pointer"
+            className="relative flex items-center gap-1.5 px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-full bg-gray-50 hover:bg-emerald-50 hover:text-emerald-700 border border-gray-200 hover:border-emerald-200 transition-all tap-feedback cursor-pointer"
             aria-label="View Cart"
           >
             <div className="relative">
-              <ShoppingBag className="w-5 h-5 text-emerald-600" />
+              <ShoppingBag className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600" />
               {totalItems > 0 && (
                 <span className="absolute -top-2 -right-2 bg-emerald-600 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center animate-scaleIn">
                   {totalItems}

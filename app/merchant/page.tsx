@@ -604,66 +604,70 @@ export default function MerchantPage() {
         </div>
 
         {/* Tab Navigation */}
-        <div className="flex gap-2 overflow-x-auto hide-scrollbar bg-white p-1.5 rounded-2xl border border-gray-200/80 shadow-2xs">
-          <button
-            onClick={() => setActiveTab('pos')}
-            className={`flex-1 min-w-[130px] py-2.5 px-4 rounded-xl text-xs font-bold transition-all tap-feedback cursor-pointer flex items-center justify-center gap-2 ${
-              activeTab === 'pos'
-                ? 'bg-emerald-600 text-white shadow-xs'
-                : 'text-gray-600 hover:text-emerald-700'
-            }`}
-          >
-            <Bell className="w-4 h-4" />
-            <span>Live POS ({displayOrders.filter((o) => o.status !== 'delivered').length})</span>
-          </button>
+        <div className="relative w-full overflow-hidden">
+          <div className="flex gap-2 overflow-x-auto hide-scrollbar scroll-smooth bg-white p-1.5 rounded-2xl border border-gray-200/80 shadow-2xs pr-8 sm:pr-1.5">
+            <button
+              onClick={() => setActiveTab('pos')}
+              className={`flex-1 min-w-[110px] sm:min-w-[130px] shrink-0 py-2 sm:py-2.5 px-3 sm:px-4 rounded-xl text-xs font-bold transition-all tap-feedback cursor-pointer flex items-center justify-center gap-2 ${
+                activeTab === 'pos'
+                  ? 'bg-emerald-600 text-white shadow-xs'
+                  : 'text-gray-600 hover:text-emerald-700'
+              }`}
+            >
+              <Bell className="w-4 h-4" />
+              <span>Live POS ({displayOrders.filter((o) => o.status !== 'delivered').length})</span>
+            </button>
 
-          <button
-            onClick={() => setActiveTab('kyc')}
-            className={`flex-1 min-w-[130px] py-2.5 px-4 rounded-xl text-xs font-bold transition-all tap-feedback cursor-pointer flex items-center justify-center gap-2 ${
-              activeTab === 'kyc'
-                ? 'bg-emerald-600 text-white shadow-xs'
-                : 'text-gray-600 hover:text-emerald-700'
-            }`}
-          >
-            <FileCheck className="w-4 h-4" />
-            <span>KYC &amp; Legal</span>
-          </button>
+            <button
+              onClick={() => setActiveTab('kyc')}
+              className={`flex-1 min-w-[110px] sm:min-w-[130px] shrink-0 py-2 sm:py-2.5 px-3 sm:px-4 rounded-xl text-xs font-bold transition-all tap-feedback cursor-pointer flex items-center justify-center gap-2 ${
+                activeTab === 'kyc'
+                  ? 'bg-emerald-600 text-white shadow-xs'
+                  : 'text-gray-600 hover:text-emerald-700'
+              }`}
+            >
+              <FileCheck className="w-4 h-4" />
+              <span>KYC &amp; Legal</span>
+            </button>
 
-          <button
-            onClick={() => setActiveTab('menu')}
-            className={`flex-1 min-w-[130px] py-2.5 px-4 rounded-xl text-xs font-bold transition-all tap-feedback cursor-pointer flex items-center justify-center gap-2 ${
-              activeTab === 'menu'
-                ? 'bg-emerald-600 text-white shadow-xs'
-                : 'text-gray-600 hover:text-emerald-700'
-            }`}
-          >
-            <Coffee className="w-4 h-4" />
-            <span>Menu Catalog ({menuItems.length})</span>
-          </button>
+            <button
+              onClick={() => setActiveTab('menu')}
+              className={`flex-1 min-w-[110px] sm:min-w-[130px] shrink-0 py-2 sm:py-2.5 px-3 sm:px-4 rounded-xl text-xs font-bold transition-all tap-feedback cursor-pointer flex items-center justify-center gap-2 ${
+                activeTab === 'menu'
+                  ? 'bg-emerald-600 text-white shadow-xs'
+                  : 'text-gray-600 hover:text-emerald-700'
+              }`}
+            >
+              <Coffee className="w-4 h-4" />
+              <span>Menu Catalog ({menuItems.length})</span>
+            </button>
 
-          <button
-            onClick={() => setActiveTab('wallet')}
-            className={`flex-1 min-w-[130px] py-2.5 px-4 rounded-xl text-xs font-bold transition-all tap-feedback cursor-pointer flex items-center justify-center gap-2 ${
-              activeTab === 'wallet'
-                ? 'bg-emerald-600 text-white shadow-xs'
-                : 'text-gray-600 hover:text-emerald-700'
-            }`}
-          >
-            <WalletIcon className="w-4 h-4" />
-            <span>Wallet &amp; Escrow</span>
-          </button>
+            <button
+              onClick={() => setActiveTab('wallet')}
+              className={`flex-1 min-w-[110px] sm:min-w-[130px] shrink-0 py-2 sm:py-2.5 px-3 sm:px-4 rounded-xl text-xs font-bold transition-all tap-feedback cursor-pointer flex items-center justify-center gap-2 ${
+                activeTab === 'wallet'
+                  ? 'bg-emerald-600 text-white shadow-xs'
+                  : 'text-gray-600 hover:text-emerald-700'
+              }`}
+            >
+              <WalletIcon className="w-4 h-4" />
+              <span>Wallet &amp; Escrow</span>
+            </button>
 
-          <button
-            onClick={() => setActiveTab('promos')}
-            className={`flex-1 min-w-[130px] py-2.5 px-4 rounded-xl text-xs font-bold transition-all tap-feedback cursor-pointer flex items-center justify-center gap-2 ${
-              activeTab === 'promos'
-                ? 'bg-emerald-600 text-white shadow-xs'
-                : 'text-gray-600 hover:text-emerald-700'
-            }`}
-          >
-            <Ticket className="w-4 h-4" />
-            <span>Store Promos ({coupons.filter((c) => !c.cafeId || c.cafeId === cafe.id).length})</span>
-          </button>
+            <button
+              onClick={() => setActiveTab('promos')}
+              className={`flex-1 min-w-[110px] sm:min-w-[130px] shrink-0 py-2 sm:py-2.5 px-3 sm:px-4 rounded-xl text-xs font-bold transition-all tap-feedback cursor-pointer flex items-center justify-center gap-2 ${
+                activeTab === 'promos'
+                  ? 'bg-emerald-600 text-white shadow-xs'
+                  : 'text-gray-600 hover:text-emerald-700'
+              }`}
+            >
+              <Ticket className="w-4 h-4" />
+              <span>Store Promos ({coupons.filter((c) => !c.cafeId || c.cafeId === cafe.id).length})</span>
+            </button>
+          </div>
+          {/* Subtle Right Edge Fade Indicator to signify horizontal swipe on mobile */}
+          <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-white to-transparent sm:hidden rounded-r-2xl" />
         </div>
 
         {/* TAB 1: LIVE ORDERS POS & KDS */}

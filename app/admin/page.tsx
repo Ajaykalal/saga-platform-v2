@@ -497,36 +497,37 @@ export default function AdminPage() {
     <div className="min-h-screen bg-slate-50 text-slate-900 font-sans pb-24">
       {/* Top Admin Bar */}
       <header className="sticky top-0 z-40 bg-slate-900 text-white border-b border-slate-800 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-emerald-500 text-slate-900 flex items-center justify-center font-black shadow-sm">
-              <ShieldCheck className="w-6 h-6 text-slate-950" />
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 py-2.5 sm:py-0 min-h-14 sm:h-16 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-emerald-500 text-slate-900 flex items-center justify-center font-black shadow-sm shrink-0">
+              <ShieldCheck className="w-5 h-5 sm:w-6 sm:h-6 text-slate-950" />
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="font-extrabold text-base tracking-tight text-white">
-                  FoodLo Super Admin
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5">
+                <span className="font-extrabold text-sm sm:text-base tracking-tight text-white truncate">
+                  FoodLo Admin
                 </span>
-                <span className="text-[10px] font-bold bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full border border-emerald-500/30">
-                  Platform Control
+                <span className="hidden xs:inline-flex text-[9px] sm:text-[10px] font-bold bg-emerald-500/20 text-emerald-400 px-1.5 py-0.5 rounded-full border border-emerald-500/30 shrink-0">
+                  Platform
                 </span>
               </div>
-              <p className="text-xs text-slate-400">
-                Logged in as Chief Operator ({user?.email || 'admin@sagacafe.in'})
+              <p className="text-[10px] sm:text-xs text-slate-400 truncate max-w-[140px] sm:max-w-none">
+                Chief Operator ({user?.email || 'admin@foodlo.in'})
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
             <Link
               href="/"
-              className="text-xs font-semibold text-slate-300 hover:text-white px-3 py-1.5 rounded-lg hover:bg-slate-800 transition-colors"
+              className="text-[11px] sm:text-xs font-semibold text-slate-300 hover:text-white px-2 sm:px-3 py-1.5 rounded-lg hover:bg-slate-800 transition-colors whitespace-nowrap"
             >
-              Customer Storefront →
+              <span className="hidden sm:inline">Customer Storefront →</span>
+              <span className="sm:hidden">Store →</span>
             </Link>
             <Link
               href="/login"
-              className="text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded-lg transition-colors"
+              className="text-[11px] sm:text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white px-2.5 sm:px-3 py-1.5 rounded-lg transition-colors whitespace-nowrap"
             >
               Switch Role
             </Link>
@@ -534,80 +535,82 @@ export default function AdminPage() {
         </div>
 
         {/* Navigation Tabs */}
-        <div className="bg-slate-950/80 border-t border-slate-800">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 flex space-x-1 sm:space-x-4 overflow-x-auto">
+        <div className="bg-slate-950/90 border-t border-slate-800 w-full overflow-hidden relative">
+          <div className="max-w-7xl mx-auto px-2 sm:px-6 flex space-x-1 sm:space-x-3 overflow-x-auto hide-scrollbar scroll-smooth w-full pr-8 sm:pr-2">
             <button
               onClick={() => setActiveTab('cafes')}
-              className={`py-3 px-3 text-xs sm:text-sm font-bold flex items-center gap-2 border-b-2 whitespace-nowrap transition-all cursor-pointer ${
+              className={`py-2.5 sm:py-3 px-2.5 sm:px-3 text-xs sm:text-sm font-bold flex items-center gap-1.5 sm:gap-2 border-b-2 whitespace-nowrap transition-all cursor-pointer shrink-0 ${
                 activeTab === 'cafes'
                   ? 'border-emerald-500 text-emerald-400 bg-emerald-500/10'
                   : 'border-transparent text-slate-400 hover:text-slate-200'
               }`}
             >
-              <Building2 className="w-4 h-4" />
+              <Building2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               <span>🏪 Cafes &amp; Performance</span>
-              <span className="text-[10px] bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded-full font-bold">
+              <span className="text-[9px] sm:text-[10px] bg-emerald-500/20 text-emerald-300 px-1.5 py-0.2 rounded-full font-bold">
                 {cafes.length} Stores
               </span>
             </button>
 
             <button
               onClick={() => setActiveTab('orders')}
-              className={`py-3 px-3 text-xs sm:text-sm font-bold flex items-center gap-2 border-b-2 whitespace-nowrap transition-all cursor-pointer ${
+              className={`py-2.5 sm:py-3 px-2.5 sm:px-3 text-xs sm:text-sm font-bold flex items-center gap-1.5 sm:gap-2 border-b-2 whitespace-nowrap transition-all cursor-pointer shrink-0 ${
                 activeTab === 'orders'
                   ? 'border-emerald-500 text-emerald-400 bg-emerald-500/10'
                   : 'border-transparent text-slate-400 hover:text-slate-200'
               }`}
             >
-              <ShoppingBag className="w-4 h-4" />
-              <span>📦 Live Orders Pipeline</span>
-              <span className="text-[10px] bg-slate-800 text-slate-300 px-1.5 py-0.2 rounded-full font-bold">
+              <ShoppingBag className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              <span>📦 Live Orders</span>
+              <span className="text-[9px] sm:text-[10px] bg-slate-800 text-slate-300 px-1.5 py-0.2 rounded-full font-bold">
                 {orders.length}
               </span>
             </button>
 
             <button
               onClick={() => setActiveTab('riders')}
-              className={`py-3 px-3 text-xs sm:text-sm font-bold flex items-center gap-2 border-b-2 whitespace-nowrap transition-all cursor-pointer ${
+              className={`py-2.5 sm:py-3 px-2.5 sm:px-3 text-xs sm:text-sm font-bold flex items-center gap-1.5 sm:gap-2 border-b-2 whitespace-nowrap transition-all cursor-pointer shrink-0 ${
                 activeTab === 'riders'
                   ? 'border-emerald-500 text-emerald-400 bg-emerald-500/10'
                   : 'border-transparent text-slate-400 hover:text-slate-200'
               }`}
             >
-              <Bike className="w-4 h-4" />
-              <span>🛵 Campus Fleet &amp; Couriers</span>
-              <span className="text-[10px] bg-emerald-900/60 text-emerald-300 px-1.5 py-0.2 rounded-full font-bold">
+              <Bike className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              <span>🛵 Campus Fleet</span>
+              <span className="text-[9px] sm:text-[10px] bg-emerald-900/60 text-emerald-300 px-1.5 py-0.2 rounded-full font-bold">
                 {riders.filter((r) => r.status !== 'offline').length} online
               </span>
             </button>
 
             <button
               onClick={() => setActiveTab('dynamic_settings')}
-              className={`py-3 px-3 text-xs sm:text-sm font-bold flex items-center gap-2 border-b-2 whitespace-nowrap transition-all cursor-pointer ${
+              className={`py-2.5 sm:py-3 px-2.5 sm:px-3 text-xs sm:text-sm font-bold flex items-center gap-1.5 sm:gap-2 border-b-2 whitespace-nowrap transition-all cursor-pointer shrink-0 ${
                 activeTab === 'dynamic_settings'
                   ? 'border-emerald-500 text-emerald-400 bg-emerald-500/10'
                   : 'border-transparent text-slate-400 hover:text-slate-200'
               }`}
             >
-              <Sliders className="w-4 h-4" />
-              <span>⚙️ Dynamic App Controls</span>
-              <span className="text-[10px] bg-emerald-500/20 text-emerald-400 px-1.5 py-0.2 rounded-full font-black">
+              <Sliders className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              <span>⚙️ Dynamic Controls</span>
+              <span className="text-[9px] sm:text-[10px] bg-emerald-500/20 text-emerald-400 px-1.5 py-0.2 rounded-full font-black">
                 PROD
               </span>
             </button>
 
             <button
               onClick={() => setActiveTab('escrow')}
-              className={`py-3 px-3 text-xs sm:text-sm font-bold flex items-center gap-2 border-b-2 whitespace-nowrap transition-all cursor-pointer ${
+              className={`py-2.5 sm:py-3 px-2.5 sm:px-3 text-xs sm:text-sm font-bold flex items-center gap-1.5 sm:gap-2 border-b-2 whitespace-nowrap transition-all cursor-pointer shrink-0 ${
                 activeTab === 'escrow'
                   ? 'border-emerald-500 text-emerald-400 bg-emerald-500/10'
                   : 'border-transparent text-slate-400 hover:text-slate-200'
               }`}
             >
-              <Zap className="w-4 h-4" />
-              <span>🏦 3-Day Escrow Payouts</span>
+              <Zap className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              <span>🏦 Escrow Payouts</span>
             </button>
           </div>
+          {/* Subtle Right Edge Fade Indicator to signify horizontal swipe on mobile */}
+          <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-slate-950 to-transparent sm:hidden" />
         </div>
       </header>
 
@@ -690,22 +693,22 @@ export default function AdminPage() {
               </div>
 
               {/* Search & Operating Filter */}
-              <div className="flex flex-wrap items-center gap-2">
-                <div className="relative">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
+                <div className="relative flex-1 sm:flex-initial">
                   <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                   <input
                     type="text"
                     value={cafeSearchQuery}
                     onChange={(e) => setCafeSearchQuery(e.target.value)}
                     placeholder="Search cafe name or landmark..."
-                    className="pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-medium text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 w-56 sm:w-64"
+                    className="pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-medium text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 w-full sm:w-64"
                   />
                 </div>
 
-                <div className="flex items-center gap-1 bg-slate-200/80 p-1 rounded-xl text-xs font-bold">
+                <div className="flex items-center justify-between sm:justify-start gap-1 bg-slate-200/80 p-1 rounded-xl text-xs font-bold w-full sm:w-auto">
                   <button
                     onClick={() => setCafeOperatingFilter('all')}
-                    className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
+                    className={`flex-1 sm:flex-initial px-3 py-1.5 rounded-lg transition-all cursor-pointer text-center ${
                       cafeOperatingFilter === 'all'
                         ? 'bg-white text-slate-900 shadow-xs'
                         : 'text-slate-600 hover:text-slate-900'
@@ -715,7 +718,7 @@ export default function AdminPage() {
                   </button>
                   <button
                     onClick={() => setCafeOperatingFilter('open')}
-                    className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
+                    className={`flex-1 sm:flex-initial px-3 py-1.5 rounded-lg transition-all cursor-pointer text-center ${
                       cafeOperatingFilter === 'open'
                         ? 'bg-emerald-600 text-white shadow-xs'
                         : 'text-slate-600 hover:text-slate-900'
@@ -725,7 +728,7 @@ export default function AdminPage() {
                   </button>
                   <button
                     onClick={() => setCafeOperatingFilter('closed')}
-                    className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
+                    className={`flex-1 sm:flex-initial px-3 py-1.5 rounded-lg transition-all cursor-pointer text-center ${
                       cafeOperatingFilter === 'closed'
                         ? 'bg-rose-600 text-white shadow-xs'
                         : 'text-slate-600 hover:text-slate-900'

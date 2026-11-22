@@ -1,13 +1,22 @@
 'use client'
 
 import React from 'react'
+import { usePathname } from 'next/navigation'
 import { ShoppingBag, ArrowRight } from 'lucide-react'
 import { useCart } from '@/lib/context/CartContext'
 
 export default function FloatingCartBar() {
+  const pathname = usePathname()
   const { totalItems, grandTotal, openCart, activeCafe, isBelowMinimumOrder, amountNeededForMinimum } = useCart()
 
-  if (totalItems === 0) return null
+  // Cleanly hide floating cart bar on dedicated portal views and full-page tracking views
+  const isPortal =
+    pathname.startsWith('/merchant') ||
+    pathname.startsWith('/rider') ||
+    pathname.startsWith('/admin') ||
+    pathname.startsWith('/orders/')
+
+  if (totalItems === 0 || isPortal) return null
 
   return (
     <div className="fixed bottom-20 left-0 right-0 z-30 px-4 sm:px-6 pointer-events-none transition-all duration-300">
