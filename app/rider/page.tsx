@@ -482,20 +482,20 @@ export default function RiderPage() {
         </div>
 
         {/* Shift Snapshot Bar */}
-        <div className="bg-slate-900 text-white px-4 py-2 text-xs">
-          <div className="max-w-2xl mx-auto flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <span className="flex items-center gap-1 text-slate-300">
-                <Clock className="w-3.5 h-3.5 text-emerald-400" /> 5:00 - 9:30 PM Shift
+        <div className="bg-slate-900 text-white px-3 sm:px-4 py-2 text-xs w-full overflow-hidden">
+          <div className="max-w-2xl mx-auto flex items-center justify-between gap-2 min-w-0">
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0 truncate">
+              <span className="flex items-center gap-1 text-slate-300 truncate">
+                <Clock className="w-3.5 h-3.5 text-emerald-400 shrink-0" /> 5:00 - 9:30 PM
               </span>
-              <span className="text-slate-600">•</span>
-              <span className="flex items-center gap-1 text-slate-300">
-                <Award className="w-3.5 h-3.5 text-amber-400" /> 4.9 ★ (98% On-Time)
+              <span className="text-slate-600 hidden xs:inline">•</span>
+              <span className="hidden xs:flex items-center gap-1 text-slate-300 truncate">
+                <Award className="w-3.5 h-3.5 text-amber-400 shrink-0" /> 4.9 ★
               </span>
             </div>
-            <div className="font-semibold text-emerald-400 flex items-center gap-1">
-              <span>Today:</span>
-              <span className="text-white font-extrabold text-sm">₹{earnings}</span>
+            <div className="font-semibold text-emerald-400 flex items-center gap-1 shrink-0">
+              <span className="text-[11px] text-slate-400">Shift:</span>
+              <span className="text-white font-extrabold text-xs sm:text-sm">₹{earnings}</span>
             </div>
           </div>
         </div>
@@ -551,7 +551,7 @@ export default function RiderPage() {
       </header>
 
       {/* Main Content Area */}
-      <main className="max-w-2xl mx-auto px-4 py-5 w-full flex-1">
+      <main className="max-w-2xl mx-auto px-3 sm:px-4 py-4 sm:py-5 w-full max-w-full flex-1 overflow-x-hidden">
         {/* Celebration Toast */}
         {celebrationMessage && (
           <div className="mb-4 p-4 rounded-xl bg-emerald-600 text-white shadow-lg flex items-center gap-3 animate-slideIn">

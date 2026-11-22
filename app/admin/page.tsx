@@ -615,7 +615,7 @@ export default function AdminPage() {
       </header>
 
       {/* Main Container */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6">
+      <main className="w-full max-w-7xl mx-auto px-3 sm:px-6 py-4 sm:py-6 space-y-6 overflow-x-hidden">
         {/* Toast Alert */}
         {toastMessage && (
           <div className="p-4 rounded-xl bg-slate-900 text-white shadow-xl border border-emerald-500/40 flex items-center gap-3 animate-slideIn">
@@ -625,52 +625,52 @@ export default function AdminPage() {
         )}
 
         {/* Global KPI Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs">
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-wide">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 w-full max-w-full">
+          <div className="bg-white rounded-2xl p-3 sm:p-4 border border-slate-200 shadow-xs min-w-0">
+            <span className="text-[11px] sm:text-xs font-bold text-slate-500 uppercase tracking-wide truncate block">
               Platform GMV
             </span>
-            <div className="text-2xl font-black text-slate-900 mt-1">
+            <div className="text-xl sm:text-2xl font-black text-slate-900 mt-1 truncate">
               ₹{totalGMV.toLocaleString('en-IN')}
             </div>
-            <span className="text-[11px] text-emerald-700 font-semibold flex items-center gap-1 mt-1">
-              <TrendingUp className="w-3 h-3 text-emerald-600" /> +18.4% this week
+            <span className="text-[10px] sm:text-[11px] text-emerald-700 font-semibold flex items-center gap-1 mt-1 truncate">
+              <TrendingUp className="w-3 h-3 text-emerald-600 shrink-0" /> +18.4% this week
             </span>
           </div>
 
-          <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs">
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-wide">
+          <div className="bg-white rounded-2xl p-3 sm:p-4 border border-slate-200 shadow-xs min-w-0">
+            <span className="text-[11px] sm:text-xs font-bold text-slate-500 uppercase tracking-wide truncate block">
               Platform Take (15%)
             </span>
-            <div className="text-2xl font-black text-emerald-600 mt-1">
+            <div className="text-xl sm:text-2xl font-black text-emerald-600 mt-1 truncate">
               ₹{totalPlatformCut.toLocaleString('en-IN')}
             </div>
-            <span className="text-[11px] text-slate-500 mt-1 block">
+            <span className="text-[10px] sm:text-[11px] text-slate-500 mt-1 block truncate">
               Net commission revenue
             </span>
           </div>
 
-          <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs">
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-wide">
+          <div className="bg-white rounded-2xl p-3 sm:p-4 border border-slate-200 shadow-xs min-w-0">
+            <span className="text-[11px] sm:text-xs font-bold text-slate-500 uppercase tracking-wide truncate block">
               Partner Cafes
             </span>
-            <div className="text-2xl font-black text-slate-900 mt-1">
+            <div className="text-xl sm:text-2xl font-black text-slate-900 mt-1 truncate">
               {cafes.length} Stores
             </div>
-            <span className="text-[11px] text-amber-700 font-semibold mt-1 block">
+            <span className="text-[10px] sm:text-[11px] text-amber-700 font-semibold mt-1 block truncate">
               {pendingKycCount} pending KYC approval
             </span>
           </div>
 
-          <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs">
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-wide">
+          <div className="bg-white rounded-2xl p-3 sm:p-4 border border-slate-200 shadow-xs min-w-0">
+            <span className="text-[11px] sm:text-xs font-bold text-slate-500 uppercase tracking-wide truncate block">
               Active Riders
             </span>
-            <div className="text-2xl font-black text-blue-600 mt-1">
+            <div className="text-xl sm:text-2xl font-black text-blue-600 mt-1 truncate">
               12 Online
             </div>
-            <span className="text-[11px] text-slate-500 mt-1 block">
-              Campus student courier pool
+            <span className="text-[10px] sm:text-[11px] text-slate-500 mt-1 block truncate">
+              Campus courier pool
             </span>
           </div>
         </div>

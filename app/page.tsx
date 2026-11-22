@@ -135,7 +135,7 @@ export default function Home() {
       {/* Top Navbar */}
       <Navbar />
 
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 pt-6 sm:pt-8 pb-32 sm:pb-24 space-y-6">
+      <main className="w-full max-w-4xl mx-auto px-4 sm:px-6 pt-6 sm:pt-8 pb-32 sm:pb-24 space-y-6 overflow-x-hidden">
         {/* Active In-Transit Order Banner (Persistent across app re-opens) */}
         {activeOrder && (
           <div className="bg-emerald-600 text-white rounded-2xl p-4 shadow-lg flex items-center justify-between animate-fadeIn border border-emerald-500/50">
@@ -235,8 +235,8 @@ export default function Home() {
         </section>
 
         {/* Category Horizontal Chips (Matching Stitch home_screen line 146) */}
-        <section className="relative w-full overflow-hidden py-1">
-          <div className="flex gap-2 overflow-x-auto hide-scrollbar scroll-smooth px-1 pr-8 sm:pr-1 min-w-full">
+        <section className="relative w-full max-w-full overflow-hidden py-1">
+          <div className="flex gap-2 overflow-x-auto hide-scrollbar scroll-smooth px-1 pr-6 sm:pr-1 w-full">
             {CATEGORIES.map((cat) => {
               const isActive = selectedCategory.toLowerCase() === cat.toLowerCase()
               return (
@@ -351,7 +351,7 @@ export default function Home() {
         </section>
 
         {/* Best Sellers Horizontal Scroll (Matching Stitch home_screen line 189) */}
-        <section className="space-y-3">
+        <section className="space-y-3 w-full max-w-full overflow-hidden">
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-2">
               <div className="w-6 h-6 rounded-md bg-amber-100 text-amber-700 flex items-center justify-center">
@@ -362,7 +362,7 @@ export default function Home() {
             <span className="text-xs font-semibold text-emerald-700">Top Rated</span>
           </div>
 
-          <div className="flex gap-4 overflow-x-auto hide-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0 py-1">
+          <div className="flex gap-4 overflow-x-auto hide-scrollbar w-full py-1">
             {bestSellers.map((item) => {
               const qty = getItemQuantity(item.id)
               return (

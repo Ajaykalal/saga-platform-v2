@@ -504,7 +504,7 @@ export default function MerchantPage() {
       {/* Top App Bar */}
       <Navbar cafeName={cafe.name} deliveryTime={cafe.delivery_time_min} isOpen={isOpen} />
 
-      <main className="max-w-5xl mx-auto px-4 sm:px-6 pt-5 space-y-6">
+      <main className="w-full max-w-5xl mx-auto px-3 sm:px-6 pt-5 space-y-6 overflow-x-hidden">
         {/* Toast Alert */}
         {toastNotice && (
           <div className="p-3.5 rounded-2xl bg-slate-900 text-white text-xs font-bold flex items-center justify-between shadow-lg animate-scaleIn">
