@@ -27,7 +27,7 @@ import {
   SEED_ORDERS,
   SEED_WALLETS,
 } from '@/lib/data/mockData'
-import { getStoredWallets, SAGA_ORDERS_EVENT } from '@/lib/services/orderService'
+import { getStoredOrders, getStoredWallets, SAGA_ORDERS_EVENT } from '@/lib/services/orderService'
 import { sounds } from '@/lib/utils/soundEffects'
 import {
   execute3DaySettlementBatch,
@@ -47,8 +47,11 @@ export default function AdminPage() {
   // Cafes State (allows approval/rejection and commission rate updates)
   const [cafes, setCafes] = useState<Cafe[]>(SEED_CAFES)
 
-  // Orders State
-  const [orders] = useState(SEED_ORDERS)
+  // Orders State (synced with platform orders service)
+  const [orders, setOrders] = useState(() => {
+    if (typeof window !== 'undefined') return getStoredOrders()
+    return SEED_ORDERS
+  })
 
   // Wallets State
   const [wallets, setWallets] = useState<Wallet[]>(SEED_WALLETS)
@@ -62,12 +65,17 @@ export default function AdminPage() {
 
   useEffect(() => {
     const syncData = () => {
+      setOrders(getStoredOrders())
       setWallets(getStoredWallets())
       setSettlementHistory(getStoredSettlementHistory())
     }
     syncData()
     window.addEventListener(SAGA_ORDERS_EVENT, syncData)
-    return () => window.removeEventListener(SAGA_ORDERS_EVENT, syncData)
+    window.addEventListener('storage', syncData)
+    return () => {
+      window.removeEventListener(SAGA_ORDERS_EVENT, syncData)
+      window.removeEventListener('storage', syncData)
+    }
   }, [])
 
   // Notification Toast

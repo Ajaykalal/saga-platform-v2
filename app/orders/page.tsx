@@ -4,8 +4,6 @@ import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import Navbar from '@/components/Navbar'
-import BottomNav from '@/components/BottomNav'
-import CartDrawer from '@/components/CartDrawer'
 import {
   CheckCircle2,
   ChevronRight,
@@ -342,9 +340,6 @@ export default function OrdersPage() {
           )}
         </div>
       </main>
-
-      <CartDrawer />
-      <BottomNav />
     </div>
   )
 }

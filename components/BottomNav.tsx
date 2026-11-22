@@ -1,21 +1,50 @@
 'use client'
 
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Home, UtensilsCrossed, ShoppingBag, ReceiptText, User } from 'lucide-react'
 import { useCart } from '@/lib/context/CartContext'
 import { useAuth } from '@/lib/context/AuthContext'
+import { getStoredOrders, SAGA_ORDERS_EVENT } from '@/lib/services/orderService'
 
 export default function BottomNav() {
   const pathname = usePathname()
   const { totalItems, openCart, activeCafe } = useCart()
   const { user } = useAuth()
+  const [hasActiveOrder, setHasActiveOrder] = useState(false)
+
+  // Cleanly hide customer BottomNav on dedicated portal views
+  const isPortal =
+    pathname.startsWith('/merchant') ||
+    pathname.startsWith('/rider') ||
+    pathname.startsWith('/admin')
+
+  useEffect(() => {
+    const checkActiveOrders = () => {
+      const orders = getStoredOrders()
+      const active = orders.some((o) =>
+        ['placed', 'confirmed', 'preparing', 'ready_for_pickup', 'out_for_delivery'].includes(o.status)
+      )
+      setHasActiveOrder(active)
+    }
+
+    checkActiveOrders()
+    window.addEventListener(SAGA_ORDERS_EVENT, checkActiveOrders)
+    window.addEventListener('storage', checkActiveOrders)
+
+    return () => {
+      window.removeEventListener(SAGA_ORDERS_EVENT, checkActiveOrders)
+      window.removeEventListener('storage', checkActiveOrders)
+    }
+  }, [])
+
+  if (isPortal) return null
 
   const isHome = pathname === '/'
   const isMenu = pathname.startsWith('/cafe/')
   const isOrders = pathname.startsWith('/orders')
-  const isLogin = pathname === '/login' || pathname === '/merchant' || pathname === '/rider' || pathname === '/admin'
+  const isLogin = pathname === '/login'
 
   // Target for Menu tab: current cafe or default to Koramangala
   const menuHref = activeCafe ? `/cafe/${activeCafe.slug}` : '/cafe/saga-koramangala'
@@ -85,7 +114,15 @@ export default function BottomNav() {
               : 'text-gray-500 hover:text-emerald-600'
           }`}
         >
-          <ReceiptText className="w-5 h-5" />
+          <div className="relative">
+            <ReceiptText className="w-5 h-5" />
+            {hasActiveOrder && (
+              <span className="absolute -top-1 -right-1 flex h-2.5 w-2.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500" />
+              </span>
+            )}
+          </div>
           <span className="text-[11px] mt-0.5">Orders</span>
         </Link>
 

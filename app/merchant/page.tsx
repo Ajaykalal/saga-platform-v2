@@ -48,6 +48,9 @@ export default function MerchantPage() {
     return SEED_CAFES.find((c) => c.slug === 'saga-koramangala') || SEED_CAFES[0]
   })
 
+  // Filter Scope: 'this_cafe' (default cafe isolation) or 'all'
+  const [filterScope, setFilterScope] = useState<'this_cafe' | 'all'>('this_cafe')
+
   // Active Tab
   const [activeTab, setActiveTab] = useState<'pos' | 'kyc' | 'menu' | 'wallet'>('pos')
 
@@ -127,10 +130,26 @@ export default function MerchantPage() {
     setTimeout(() => setToastNotice(null), 4000)
   }
 
+  const handleSwitchCafe = (newCafe: Cafe) => {
+    setCafe(newCafe)
+    setIsOpen(newCafe.is_open)
+    setMenuItems(SEED_MENU_ITEMS.filter((item) => item.cafe_id === newCafe.id))
+    setBankDetails(getCafeBankDetails(newCafe.id))
+    showToast(`Switched active kitchen to ${newCafe.name}`)
+  }
+
+  const displayOrders = filterScope === 'this_cafe'
+    ? orders.filter((o) => o.cafe_id === cafe.id)
+    : orders
+  const activePlacedOrders = displayOrders.filter((o) => o.status === 'placed')
+
   useEffect(() => {
     const handleUpdate = () => {
       const latest = getStoredOrders()
-      const currentPlaced = latest.filter((o) => o.status === 'placed').length
+      const targetCafeOrders = filterScope === 'this_cafe'
+        ? latest.filter((o) => o.cafe_id === cafe.id)
+        : latest
+      const currentPlaced = targetCafeOrders.filter((o) => o.status === 'placed').length
 
       // Ring kitchen bell alert if new unaccepted order arrived
       if (soundAlertEnabled && currentPlaced > prevPlacedCountRef.current) {
@@ -151,7 +170,7 @@ export default function MerchantPage() {
       window.removeEventListener(SAGA_ORDERS_EVENT, handleUpdate)
       window.removeEventListener('storage', handleUpdate)
     }
-  }, [soundAlertEnabled, cafe.id])
+  }, [soundAlertEnabled, cafe.id, filterScope])
 
   const handleOpenBankModal = () => {
     setBankFormHolder(bankDetails.ownerName)
@@ -362,10 +381,21 @@ export default function MerchantPage() {
               <Store className="w-7 h-7" />
             </div>
             <div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-xl sm:text-2xl font-extrabold text-gray-900">
-                  {cafe.name}
-                </h1>
+              <div className="flex flex-wrap items-center gap-2">
+                <select
+                  value={cafe.id}
+                  onChange={(e) => {
+                    const selected = SEED_CAFES.find((c) => c.id === e.target.value)
+                    if (selected) handleSwitchCafe(selected)
+                  }}
+                  className="text-lg sm:text-xl font-extrabold text-gray-900 bg-transparent border-b-2 border-emerald-500/40 hover:border-emerald-600 focus:outline-none cursor-pointer py-0.5 pr-2"
+                >
+                  {SEED_CAFES.map((c) => (
+                    <option key={c.id} value={c.id} className="text-sm font-semibold text-gray-900">
+                      {c.name}
+                    </option>
+                  ))}
+                </select>
                 <span
                   className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold ${
                     cafe.kyc_status === 'approved'
@@ -435,7 +465,7 @@ export default function MerchantPage() {
             }`}
           >
             <Bell className="w-4 h-4" />
-            <span>Live POS ({orders.filter((o) => o.status !== 'delivered').length})</span>
+            <span>Live POS ({displayOrders.filter((o) => o.status !== 'delivered').length})</span>
           </button>
 
           <button
@@ -478,8 +508,39 @@ export default function MerchantPage() {
         {/* TAB 1: LIVE ORDERS POS & KDS */}
         {activeTab === 'pos' && (
           <div className="space-y-4">
+            {/* Filter scope switcher: This Cafe vs All Network */}
+            <div className="flex flex-wrap items-center justify-between gap-2 bg-white p-2.5 rounded-2xl border border-gray-200/80 shadow-2xs">
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setFilterScope('this_cafe')}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                    filterScope === 'this_cafe'
+                      ? 'bg-emerald-600 text-white shadow-xs'
+                      : 'text-gray-600 hover:text-emerald-700 bg-gray-100 hover:bg-gray-200'
+                  }`}
+                >
+                  {cafe.name} ({orders.filter((o) => o.cafe_id === cafe.id && o.status !== 'delivered').length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFilterScope('all')}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                    filterScope === 'all'
+                      ? 'bg-emerald-600 text-white shadow-xs'
+                      : 'text-gray-600 hover:text-emerald-700 bg-gray-100 hover:bg-gray-200'
+                  }`}
+                >
+                  All Network Cafes ({orders.filter((o) => o.status !== 'delivered').length})
+                </button>
+              </div>
+              <span className="text-[11px] text-gray-500 font-semibold px-2">
+                Showing {displayOrders.length} orders
+              </span>
+            </div>
+
             {/* INCOMING NEW ORDER FLASH ALERT FOR CHEF */}
-            {orders.filter((o) => o.status === 'placed').length > 0 && (
+            {activePlacedOrders.length > 0 && (
               <div className="bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-600 text-white rounded-3xl p-5 shadow-lg border-2 border-emerald-400 animate-pulse space-y-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
@@ -488,7 +549,7 @@ export default function MerchantPage() {
                     </div>
                     <div>
                       <span className="text-[11px] font-black uppercase tracking-wider bg-black/20 px-2.5 py-0.5 rounded-full">
-                        🚨 {orders.filter((o) => o.status === 'placed').length} New Kitchen Order Received
+                        🚨 {activePlacedOrders.length} New Kitchen Order Received
                       </span>
                       <h3 className="text-lg font-black leading-tight mt-0.5">
                         Chef Action Required: Accept &amp; Start Preparing
@@ -510,13 +571,13 @@ export default function MerchantPage() {
                 <div className="bg-white/10 backdrop-blur-xs rounded-2xl p-3 flex flex-col sm:flex-row items-center justify-between gap-3">
                   <div className="text-xs">
                     <span className="font-extrabold text-white">
-                      Order #{orders.filter((o) => o.status === 'placed')[0].order_number}
+                      Order #{activePlacedOrders[0].order_number}
                     </span>
                     <span className="text-emerald-100 ml-1.5">
-                      ({orders.filter((o) => o.status === 'placed')[0].items.reduce((s, i) => s + i.quantity, 0)} items • ₹{orders.filter((o) => o.status === 'placed')[0].total_amount_inr})
+                      ({activePlacedOrders[0].items.reduce((s, i) => s + i.quantity, 0)} items • ₹{activePlacedOrders[0].total_amount_inr})
                     </span>
                     <span className="block text-[11px] text-emerald-200 mt-0.5">
-                      {orders.filter((o) => o.status === 'placed')[0].payment_method === 'cod'
+                      {activePlacedOrders[0].payment_method === 'cod'
                         ? 'Cash on Delivery (Collect on Drop)'
                         : 'Paid Directly via Paytm UPI'} • Non-Cancellable Fresh Prep
                     </span>
@@ -525,20 +586,20 @@ export default function MerchantPage() {
                   <button
                     onClick={() =>
                       handleUpdateOrderStatus(
-                        orders.filter((o) => o.status === 'placed')[0].id,
+                        activePlacedOrders[0].id,
                         'preparing'
                       )
                     }
                     className="w-full sm:w-auto px-6 py-2.5 bg-white hover:bg-emerald-50 text-emerald-800 font-black text-xs rounded-xl shadow-md transition-transform active:scale-95 cursor-pointer flex items-center justify-center gap-2"
                   >
                     <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                    <span>Accept #{orders.filter((o) => o.status === 'placed')[0].order_number} &amp; Cook</span>
+                    <span>Accept #{activePlacedOrders[0].order_number} &amp; Cook</span>
                   </button>
                 </div>
               </div>
             )}
 
-            {hasNewAlert && orders.filter((o) => o.status === 'placed').length === 0 && (
+            {hasNewAlert && activePlacedOrders.length === 0 && (
               <div className="bg-emerald-500 text-white rounded-2xl p-4 flex items-center justify-between shadow-md">
                 <div className="flex items-center gap-3">
                   <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center">
@@ -561,7 +622,7 @@ export default function MerchantPage() {
             )}
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {orders.map((order) => {
+              {displayOrders.map((order) => {
                 const isNew = order.status === 'placed'
                 const isPreparing = order.status === 'preparing'
                 const isReady = order.status === 'ready_for_pickup'

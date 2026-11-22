@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useMemo } from 'react'
+import React, { useState, useMemo, useEffect } from 'react'
 import Link from 'next/link'
 import Navbar from '@/components/Navbar'
 import {
@@ -15,12 +15,36 @@ import {
 } from 'lucide-react'
 import { SEED_CAFES, SEED_MENU_ITEMS, CATEGORIES } from '@/lib/data/mockData'
 import { useCart } from '@/lib/context/CartContext'
-import type { MenuItem } from '@/lib/supabase/types'
+import { getStoredOrders, SAGA_ORDERS_EVENT } from '@/lib/services/orderService'
+import type { MenuItem, Order } from '@/lib/supabase/types'
 
 export default function Home() {
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('All')
   const { addItem, getItemQuantity, updateQuantity } = useCart()
+  const [activeOrder, setActiveOrder] = useState<Order | null>(null)
+
+  useEffect(() => {
+    const checkActiveOrders = () => {
+      const orders = getStoredOrders()
+      const found =
+        orders.find((o) =>
+          ['placed', 'confirmed', 'preparing', 'ready_for_pickup', 'out_for_delivery'].includes(
+            o.status
+          )
+        ) || null
+      setActiveOrder(found)
+    }
+
+    checkActiveOrders()
+    window.addEventListener(SAGA_ORDERS_EVENT, checkActiveOrders)
+    window.addEventListener('storage', checkActiveOrders)
+
+    return () => {
+      window.removeEventListener(SAGA_ORDERS_EVENT, checkActiveOrders)
+      window.removeEventListener('storage', checkActiveOrders)
+    }
+  }, [])
 
   // Filter menu items by search & category
   const filteredMenuItems = useMemo(() => {
@@ -61,7 +85,41 @@ export default function Home() {
       {/* Top Navbar */}
       <Navbar />
 
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 pt-5 pb-12 space-y-7">
+      <main className="max-w-4xl mx-auto px-4 sm:px-6 pt-5 pb-12 space-y-6">
+        {/* Active In-Transit Order Banner (Persistent across app re-opens) */}
+        {activeOrder && (
+          <div className="bg-emerald-600 text-white rounded-2xl p-4 shadow-lg flex items-center justify-between animate-fadeIn border border-emerald-500/50">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center shrink-0">
+                <Clock className="w-5 h-5 text-white animate-pulse" />
+              </div>
+              <div className="min-w-0">
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-black uppercase tracking-wider bg-white/20 px-2 py-0.5 rounded-full shrink-0">
+                    Active Order
+                  </span>
+                  <span className="text-xs font-mono font-bold truncate">#{activeOrder.order_number}</span>
+                </div>
+                <p className="text-xs text-emerald-100 font-medium mt-0.5 truncate">
+                  {activeOrder.status === 'out_for_delivery'
+                    ? '🚴 Out for Delivery • Student courier on the way'
+                    : activeOrder.status === 'ready_for_pickup'
+                    ? '📦 Packed & Waiting for Student Courier'
+                    : '🔥 Kitchen Baking Fresh • In Progress'}
+                </p>
+              </div>
+            </div>
+
+            <Link
+              href={`/orders/${activeOrder.id}`}
+              className="px-3.5 py-2 bg-white text-emerald-800 rounded-xl text-xs font-extrabold flex items-center gap-1 shadow-sm hover:bg-emerald-50 transition-colors shrink-0 tap-feedback ml-2"
+            >
+              <span>Track Live</span>
+              <ChevronRight className="w-4 h-4" />
+            </Link>
+          </div>
+        )}
+
         {/* Hero Banner Section */}
         <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-emerald-900 via-emerald-800 to-emerald-700 text-white p-6 sm:p-8 shadow-md">
           <div className="absolute top-0 right-0 w-80 h-80 bg-white/5 rounded-full blur-2xl transform translate-x-20 -translate-y-20 pointer-events-none" />

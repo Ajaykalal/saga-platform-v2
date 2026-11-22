@@ -105,9 +105,61 @@ export default function RiderPage() {
   // Celebration banner
   const [celebrationMessage, setCelebrationMessage] = useState<string | null>(null)
 
+  // Current active delivery accepted by this rider (persisted across reloads)
+  const [activeOrderId, setActiveOrderId] = useState<string | null>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('saga_rider_active_order_v1')
+      if (saved) {
+        const found = orders.find((o) => o.id === saved)
+        if (found && found.status !== 'delivered' && found.status !== 'cancelled') {
+          return saved
+        }
+      }
+    }
+    return orders.find((o) => o.status === 'out_for_delivery')?.id || null
+  })
+
+  // Delivery trip step: 'to_cafe' | 'picked_up' (persisted across reloads)
+  const [localTripStep, setLocalTripStep] = useState<'to_cafe' | 'picked_up'>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('saga_rider_trip_step_v1')
+      if (saved === 'to_cafe' || saved === 'picked_up') return saved
+    }
+    return 'to_cafe'
+  })
+
+  const updateActiveOrderId = (orderId: string | null) => {
+    setActiveOrderId(orderId)
+    if (typeof window !== 'undefined') {
+      if (orderId) {
+        localStorage.setItem('saga_rider_active_order_v1', orderId)
+      } else {
+        localStorage.removeItem('saga_rider_active_order_v1')
+      }
+    }
+  }
+
+  const updateTripStep = (step: 'to_cafe' | 'picked_up') => {
+    setLocalTripStep(step)
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('saga_rider_trip_step_v1', step)
+    }
+  }
+
   useEffect(() => {
     const handleUpdate = () => {
-      setOrders(getStoredOrders())
+      const updatedOrders = getStoredOrders()
+      setOrders(updatedOrders)
+      if (typeof window !== 'undefined') {
+        const saved = localStorage.getItem('saga_rider_active_order_v1')
+        if (saved) {
+          const match = updatedOrders.find((o) => o.id === saved)
+          if (!match || match.status === 'delivered' || match.status === 'cancelled') {
+            localStorage.removeItem('saga_rider_active_order_v1')
+            setActiveOrderId(null)
+          }
+        }
+      }
       const stored = getStoredWallets()
       setWallets(stored)
       const rw = stored.find((w) => w.role === 'rider')
@@ -125,15 +177,6 @@ export default function RiderPage() {
       window.removeEventListener('storage', handleUpdate)
     }
   }, [])
-
-  // Current active delivery accepted by this rider
-  // Initialize with the mock out_for_delivery order (SAGA-8945)
-  const [activeOrderId, setActiveOrderId] = useState<string | null>(
-    () => orders.find((o) => o.status === 'out_for_delivery')?.id || null
-  )
-
-  // Delivery trip step: 'to_cafe' | 'picked_up'
-  const [localTripStep, setLocalTripStep] = useState<'to_cafe' | 'picked_up'>('to_cafe')
 
   // Live Camera / Proof Photos & Verification State
   const pickupInputRef = useRef<HTMLInputElement>(null)
@@ -199,8 +242,8 @@ export default function RiderPage() {
     })
     sounds.playNotificationChime()
     setOrders(getStoredOrders())
-    setActiveOrderId(orderId)
-    setLocalTripStep('to_cafe')
+    updateActiveOrderId(orderId)
+    updateTripStep('to_cafe')
     setActiveTab('active')
     setLocalPickupPhoto(null)
     setLocalDeliveryPhoto(null)
@@ -219,7 +262,7 @@ export default function RiderPage() {
     })
     sounds.playNotificationChime()
     setOrders(getStoredOrders())
-    setLocalTripStep('picked_up')
+    updateTripStep('picked_up')
     triggerHaptic()
   }
 
@@ -262,8 +305,8 @@ export default function RiderPage() {
     }
 
     setTodayDeliveriesCount((prev) => prev + 1)
-    setActiveOrderId(null)
-    setLocalTripStep('to_cafe')
+    updateActiveOrderId(null)
+    updateTripStep('to_cafe')
     setLocalPickupPhoto(null)
     setLocalDeliveryPhoto(null)
     setEnteredOtp('')

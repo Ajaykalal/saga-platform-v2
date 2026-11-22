@@ -4,8 +4,6 @@ import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import Navbar from '@/components/Navbar'
-import BottomNav from '@/components/BottomNav'
-import CartDrawer from '@/components/CartDrawer'
 import LiveDeliveryMap from '@/components/LiveDeliveryMap'
 import {
   Utensils,
@@ -23,7 +21,7 @@ import {
 } from 'lucide-react'
 import { getOrderById, SAGA_ORDERS_EVENT } from '@/lib/services/orderService'
 import { SEED_CAFES } from '@/lib/data/mockData'
-import { createClient } from '@/lib/supabase/client'
+import { createClient, isSupabaseConfigured } from '@/lib/supabase/client'
 import { sounds } from '@/lib/utils/soundEffects'
 import { createWhatsAppUrl } from '@/lib/utils/whatsapp'
 import type { Order, OrderStatus } from '@/lib/supabase/types'
@@ -33,13 +31,51 @@ interface OrderTrackingViewProps {
 }
 
 export default function OrderTrackingView({ orderId }: OrderTrackingViewProps) {
-  const [order, setOrder] = useState<Order | null>(() => getOrderById(orderId) || null)
+  const [order, setOrder] = useState<Order | null>(() => {
+    if (typeof window !== 'undefined') {
+      return getOrderById(orderId) || null
+    }
+    return null
+  })
+  const [isHydrating, setIsHydrating] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      const local = getOrderById(orderId)
+      if (local) return false
+      return isSupabaseConfigured()
+    }
+    return false
+  })
   const [isLiveConnected, setIsLiveConnected] = useState(false)
   const prevStatusRef = React.useRef<OrderStatus | null>(order?.status || null)
 
   // Fetch and subscribe to order updates
   useEffect(() => {
-    // 1. React to local multi-tab / service events
+    // 1. Cross-device cloud fetch from Supabase if order was not in local cache
+    if (isHydrating && isSupabaseConfigured()) {
+      try {
+        const supabase = createClient()
+        Promise.resolve(
+          supabase
+            .from('orders')
+            .select('*')
+            .eq('id', orderId)
+            .single()
+        )
+          .then(({ data, error }) => {
+            if (data && !error) {
+              const remoteOrder = data as Order
+              setOrder(remoteOrder)
+              prevStatusRef.current = remoteOrder.status
+            }
+            setIsHydrating(false)
+          })
+          .catch(() => setIsHydrating(false))
+      } catch {
+        // Fallback on unexpected client failure
+      }
+    }
+
+    // 3. React to local multi-tab / service events
     const handleUpdate = () => {
       const updated = getOrderById(orderId)
       if (updated) {
@@ -54,7 +90,7 @@ export default function OrderTrackingView({ orderId }: OrderTrackingViewProps) {
     window.addEventListener(SAGA_ORDERS_EVENT, handleUpdate)
     window.addEventListener('storage', handleUpdate)
 
-    // 2. Supabase Realtime channel subscription
+    // 4. Supabase Realtime channel subscription
     try {
       const supabase = createClient()
       const channel = supabase
@@ -95,7 +131,19 @@ export default function OrderTrackingView({ orderId }: OrderTrackingViewProps) {
         window.removeEventListener('storage', handleUpdate)
       }
     }
-  }, [orderId])
+  }, [orderId, isHydrating])
+
+  if (!order && isHydrating) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-8 text-center">
+        <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center mb-4 animate-pulse">
+          <Clock className="w-6 h-6" />
+        </div>
+        <h3 className="text-base font-extrabold text-slate-900 mb-1">Connecting to Kitchen Dispatch...</h3>
+        <p className="text-xs text-slate-500 max-w-xs">Fetching live ETA, student courier location & delivery OTP.</p>
+      </div>
+    )
+  }
 
   if (!order) {
     return (
@@ -116,7 +164,6 @@ export default function OrderTrackingView({ orderId }: OrderTrackingViewProps) {
             View All Orders
           </Link>
         </main>
-        <BottomNav />
       </div>
     )
   }
@@ -588,9 +635,6 @@ export default function OrderTrackingView({ orderId }: OrderTrackingViewProps) {
           </div>
         </div>
       </main>
-
-      <CartDrawer />
-      <BottomNav />
     </div>
   )
 }
