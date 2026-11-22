@@ -198,11 +198,11 @@ export default function OrdersPage() {
                         {getStatusBadge(order.status)}
                       </div>
                       <h3 className="font-black text-slate-900 text-lg mt-1">
-                        {cafe?.name || 'Saga Cafe'}
+                        {cafe?.name || 'FoodLo Cafe'}
                       </h3>
                       <p className="text-xs text-slate-500 flex items-center gap-1">
                         <Store className="w-3.5 h-3.5 text-slate-400" />
-                        {cafe?.address || 'Bengaluru'}
+                        {cafe?.address || 'Sagwara'}
                       </p>
                     </div>
 

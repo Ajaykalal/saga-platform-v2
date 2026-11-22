@@ -457,7 +457,7 @@ export default function RiderPage() {
                 </span>
               </div>
               <p className="text-xs text-slate-500 flex items-center gap-1 mt-0.5">
-                <MapPin className="w-3 h-3 text-emerald-600" /> Koramangala Campus Hub
+                <MapPin className="w-3 h-3 text-emerald-600" /> Sagwara Central Hub
               </p>
             </div>
           </div>
@@ -737,11 +737,11 @@ export default function RiderPage() {
                             Pickup Location
                           </span>
                           <h3 className="font-extrabold text-slate-900 text-lg">
-                            {activeCafe?.name || 'Saga Cafe'}
+                            {activeCafe?.name || 'Meesaavi Cafe and Restro'}
                           </h3>
                           <p className="text-xs text-slate-500 flex items-center gap-1 mt-0.5">
                             <MapPin className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                            {activeCafe?.address || 'Koramangala 5th Block, Bengaluru'}
+                            {activeCafe?.address || 'Nursery Mode, Sagwara'}
                           </p>
                         </div>
                         <a
@@ -1352,22 +1352,22 @@ export default function RiderPage() {
                   {
                     id: 'drop-1',
                     time: '18:10',
-                    cafe: 'Saga Cafe Koramangala',
-                    area: '5th Block',
+                    cafe: 'Meesaavi Cafe and Restro',
+                    area: 'Punarvas Colony',
                     payout: 55,
                   },
                   {
                     id: 'drop-2',
                     time: '17:35',
-                    cafe: 'Saga Cafe Koramangala',
-                    area: 'Inner Ring Rd',
+                    cafe: 'Mewar Restaurant',
+                    area: 'Dungarpur Road',
                     payout: 60,
                   },
                   {
                     id: 'drop-3',
                     time: '16:50',
-                    cafe: 'Saga Cafe Koramangala',
-                    area: '1st Block',
+                    cafe: 'Bhawani Bhel Centre',
+                    area: 'Gamleshwar Talab',
                     payout: 50,
                   },
                   {

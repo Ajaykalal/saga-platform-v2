@@ -92,7 +92,7 @@ export default function AdminPage() {
   const [riderSearchQuery, setRiderSearchQuery] = useState('')
   const [riderStatusFilter, setRiderStatusFilter] = useState<'all' | 'on_delivery' | 'on_duty' | 'offline'>('all')
 
-  // Cafe Filter for Orders & Analytics (e.g. My Cafe: Rohan Mehta's Koramangala vs All)
+  // Cafe Filter for Orders & Analytics (e.g. My Cafe: Rohan Mehta's Meesaavi Cafe vs All)
   const [selectedCafeFilter, setSelectedCafeFilter] = useState<string>('all')
 
   // Order Details Modal & Prev/Next Navigation
@@ -1059,10 +1059,10 @@ export default function AdminPage() {
                           </td>
                           <td className="px-4 py-4">
                             <span className="font-bold text-slate-800 block">
-                              {cafe?.name || 'Saga Cafe'}
+                              {cafe?.name || 'FoodLo Cafe'}
                             </span>
                             <span className="text-[11px] text-slate-400 truncate block max-w-[130px]">
-                              {cafe?.address || 'Bengaluru'}
+                              {cafe?.address || 'Sagwara'}
                             </span>
                           </td>
                           <td className="px-4 py-4">
@@ -1560,7 +1560,7 @@ export default function AdminPage() {
                       type="text"
                       value={cfgBannerMsg}
                       onChange={(e) => setCfgBannerMsg(e.target.value)}
-                      placeholder="e.g. 🌧️ Heavy Rain in Koramangala: Delivery may take 10–15 mins extra for rider safety."
+                      placeholder="e.g. 🌧️ Heavy Rain in Sagwara: Delivery may take 10–15 mins extra for rider safety."
                       className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs font-medium text-slate-900 focus:ring-2 focus:ring-emerald-500 outline-none"
                     />
                   </div>

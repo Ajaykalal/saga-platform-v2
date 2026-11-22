@@ -170,10 +170,10 @@ export default function Home() {
               FoodLo Express Delivery
             </span>
             <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight leading-tight">
-              Artisan Crusts, Smash Burgers & Specialty Brews
+              Sagwara&apos;s Favorite Cafes &amp; Street Bites
             </h1>
             <p className="text-emerald-100/90 text-xs sm:text-sm font-normal">
-              Direct delivery from curated Bengaluru micro-kitchens with live tracking & 3-day merchant escrow holds.
+              Direct express delivery from Sagwara&apos;s top cafes, thali points, and street corners with live GPS tracking.
             </p>
           </div>
         </div>

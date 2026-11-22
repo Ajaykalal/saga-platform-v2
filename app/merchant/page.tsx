@@ -61,7 +61,7 @@ import type { Cafe, MenuItem, Order, OrderStatus, Wallet, WalletTransaction } fr
 export default function MerchantPage() {
   // Target cafe: default to Koramangala (owned by Rohan Mehta)
   const [cafe, setCafe] = useState<Cafe>(() => {
-    return SEED_CAFES.find((c) => c.slug === 'saga-koramangala') || SEED_CAFES[0]
+    return SEED_CAFES.find((c) => c.slug === 'meesaavi-cafe') || SEED_CAFES[0]
   })
 
   // Filter Scope: 'this_cafe' (default cafe isolation) or 'all'
@@ -972,7 +972,7 @@ export default function MerchantPage() {
                 <FileCheck className="w-8 h-8 text-emerald-600 mx-auto" />
                 <div className="text-xs font-medium text-gray-700">
                   {kycDocUploaded
-                    ? '✓ Certificate_fssai_gstin_koramangala.pdf uploaded (Verified)'
+                    ? '✓ Certificate_fssai_gstin_meesaavi.pdf uploaded (Verified)'
                     : 'Click to upload FSSAI Certificate & GST Registration'}
                 </div>
                 <button

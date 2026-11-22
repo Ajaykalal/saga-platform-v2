@@ -27,7 +27,7 @@ export default function LoginPage() {
   const [isNewUser, setIsNewUser] = useState(false)
   const [otpCode, setOtpCode] = useState('')
   const [otpSent, setOtpSent] = useState(false)
-  const [email, setEmail] = useState('owner.koramangala@sagacafe.in')
+  const [email, setEmail] = useState('owner.sagwara@foodlo.in')
   const [password, setPassword] = useState('••••••••')
   const [isLoading, setIsLoading] = useState(false)
   const [errorMsg, setErrorMsg] = useState('')
@@ -329,7 +329,7 @@ export default function LoginPage() {
                       <h4 className="text-xs font-bold text-emerald-950">
                         Cafe Owner POS (/merchant)
                       </h4>
-                      <p className="text-[11px] text-emerald-700">Rohan Mehta • Koramangala Kitchen</p>
+                      <p className="text-[11px] text-emerald-700">Rohan Mehta • Meesaavi Kitchen, Sagwara</p>
                     </div>
                   </div>
                   <ArrowRight className="w-4 h-4 text-emerald-600" />

@@ -82,7 +82,7 @@ export default function Navbar({
               </span>
               <span className="text-[11px] font-medium text-emerald-600 flex items-center gap-1">
                 <MapPin className="w-3 h-3 text-emerald-500" />
-                Bengaluru • Multi-Storefront
+                Sagwara • Local Food Delivery
               </span>
             </div>
           </Link>

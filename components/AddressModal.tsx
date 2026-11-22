@@ -34,12 +34,12 @@ interface AddressModalProps {
 }
 
 const LOCALITY_PRESETS = [
-  { area: 'Koramangala 4th/5th Block', distance: 2.4, landmark: 'Near Sony World' },
-  { area: 'Indiranagar 100ft Road', distance: 6.2, landmark: 'Near Metro Station' },
-  { area: 'HSR Layout Sector 1', distance: 4.8, landmark: 'Near 27th Main' },
-  { area: 'Christ University Campus, Hosur Rd', distance: 3.5, landmark: 'Central Gate' },
-  { area: 'BTM Layout 2nd Stage', distance: 5.4, landmark: 'Near Udupi Garden' },
-  { area: 'Bellandur EcoSpace', distance: 7.8, landmark: 'Outer Ring Rd' },
+  { area: 'Nursery Mode (Near Reliance Smart)', distance: 1.2, landmark: 'Near Reliance Smart Mall' },
+  { area: 'Gamleshwar Talab Road', distance: 1.8, landmark: 'Near Bhawani Bhel' },
+  { area: 'Punarvas Colony', distance: 2.1, landmark: 'Near Keval Kirana' },
+  { area: 'Dungarpur Road (Opp. JMB)', distance: 2.5, landmark: 'Near Champ Saloon' },
+  { area: 'Banswara Road (Pal Par)', distance: 3.2, landmark: 'Near Devnarayan Chowk' },
+  { area: 'Gameriya Talab Chopati', distance: 2.8, landmark: 'Chopati Corner' },
 ]
 
 export default function AddressModal({ isOpen, onClose, onSelectAddress }: AddressModalProps) {
@@ -57,8 +57,8 @@ export default function AddressModal({ isOpen, onClose, onSelectAddress }: Addre
   const [buildingName, setBuildingName] = useState('')
   const [areaStreet, setAreaStreet] = useState('')
   const [landmark, setLandmark] = useState('')
-  const [city, setCity] = useState('Bengaluru')
-  const [postalCode, setPostalCode] = useState('560095')
+  const [city, setCity] = useState('Sagwara')
+  const [postalCode, setPostalCode] = useState('314025')
   const [distanceKm, setDistanceKm] = useState<number>(2.8)
   const [isDefault, setIsDefault] = useState(false)
   const [formError, setFormError] = useState('')
@@ -110,10 +110,10 @@ export default function AddressModal({ isOpen, onClose, onSelectAddress }: Addre
     setPhone(user?.phone || '+91 99000 12345')
     setFlatHouseNo('')
     setBuildingName('')
-    setAreaStreet('Koramangala 5th Block')
+    setAreaStreet('Nursery Mode')
     setLandmark('')
-    setCity('Bengaluru')
-    setPostalCode('560095')
+    setCity('Sagwara')
+    setPostalCode('314025')
     setDistanceKm(2.8)
     setIsDefault(addresses.length === 0)
     setFormError('')
@@ -166,8 +166,8 @@ export default function AddressModal({ isOpen, onClose, onSelectAddress }: Addre
       building_name: buildingName.trim() || 'Residential',
       area_street: areaStreet.trim(),
       landmark: landmark.trim() || undefined,
-      city: city.trim() || 'Bengaluru',
-      postal_code: postalCode.trim() || '560095',
+      city: city.trim() || 'Sagwara',
+      postal_code: postalCode.trim() || '314025',
       distance_km: Number(distanceKm) || 2.8,
       is_default: isDefault,
     })
@@ -222,8 +222,8 @@ export default function AddressModal({ isOpen, onClose, onSelectAddress }: Addre
               </h3>
               <p className="text-xs text-gray-500">
                 {isFormOpen
-                  ? 'Bengaluru 0–10 km courier radius'
-                  : 'Delivering from Koramangala & Indiranagar kitchens'}
+                  ? 'Sagwara 0–10 km courier radius'
+                  : 'Delivering from Sagwara local cafes & street spots'}
               </p>
             </div>
           </div>
@@ -453,7 +453,7 @@ export default function AddressModal({ isOpen, onClose, onSelectAddress }: Addre
               {/* Quick Area / Locality Presets */}
               <div className="space-y-1.5">
                 <div className="flex justify-between items-center">
-                  <label className="text-xs font-bold text-gray-700">Quick Bengaluru Localities</label>
+                  <label className="text-xs font-bold text-gray-700">Quick Sagwara Localities</label>
                   <span className="text-[10px] text-gray-400">Tap to auto-fill distance</span>
                 </div>
                 <div className="flex flex-wrap gap-1.5">

@@ -20,13 +20,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   if (!cafe) {
     return {
-      title: 'Cafe Not Found | SAGA Delivery',
+      title: 'Cafe Not Found | FoodLo Delivery',
     }
   }
 
   return {
-    title: `${cafe.name} - Order Online | SAGA Delivery`,
-    description: cafe.description || `Explore ${cafe.name}'s gourmet artisan menu.`,
+    title: `${cafe.name} - Order Online | FoodLo Delivery`,
+    description: cafe.description || `Explore ${cafe.name}'s menu on FoodLo.`,
   }
 }
 

@@ -591,7 +591,7 @@ export default function OrderTrackingView({ orderId }: OrderTrackingViewProps) {
         {/* Free Live GPS Delivery Route Map & Google Maps Navigation */}
         <LiveDeliveryMap
           cafeName={cafe?.name || 'Saga Cafe'}
-          cafeAddress={cafe?.address || 'Koramangala, Bengaluru'}
+          cafeAddress={cafe?.address || 'Nursery Mode, Sagwara'}
           cafeCoordinates={{
             lat: cafe?.latitude ? Number(cafe.latitude) : 12.934533,
             lng: cafe?.longitude ? Number(cafe.longitude) : 77.626579,

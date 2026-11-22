@@ -33,7 +33,7 @@ export const DEFAULT_PLATFORM_CONFIG: DynamicPlatformConfig = {
   allowMerchantCsvExport: false,
   announcementBanner: {
     enabled: false,
-    message: '🌧️ Heavy Monsoon in Koramangala: Delivery may take 10–15 mins extra for rider safety.',
+    message: '🌧️ Monsoon Alert in Sagwara: Delivery may take 10–15 mins extra for rider safety.',
     type: 'warning',
   },
 }
