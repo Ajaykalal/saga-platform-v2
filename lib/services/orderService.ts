@@ -211,7 +211,16 @@ export function getStoredOrders(): Order[] {
       localStorage.setItem(ORDERS_STORAGE_KEY, JSON.stringify(SEED_ORDERS))
       return SEED_ORDERS
     }
-    return JSON.parse(raw) as Order[]
+    const parsed = JSON.parse(raw) as Order[]
+    // Ensure all 9 Sagwara cafe seed orders are present so new orders display immediately
+    const existingIds = new Set(parsed.map((o) => o.id))
+    const missingSeedOrders = SEED_ORDERS.filter((o) => !existingIds.has(o.id))
+    if (missingSeedOrders.length > 0) {
+      const merged = [...parsed, ...missingSeedOrders]
+      localStorage.setItem(ORDERS_STORAGE_KEY, JSON.stringify(merged))
+      return merged
+    }
+    return parsed
   } catch {
     return SEED_ORDERS
   }

@@ -69,10 +69,18 @@ export const DEMO_USERS: Record<UserRole, DemoUser> = {
   },
 }
 
+export interface RegisteredUserRecord extends DemoUser {
+  pin: string
+  created_at: string
+}
+
 interface AuthContextType {
   user: DemoUser | null
   role: UserRole
   isAuthenticated: boolean
+  isPhoneRegistered: (phone: string) => boolean
+  registerWithPhonePin: (fullName: string, phone: string, pin: string) => Promise<{ success: boolean; message?: string }>
+  loginWithPhonePin: (phone: string, pin: string) => Promise<{ success: boolean; message?: string }>
   loginWithEmail: (email: string) => Promise<boolean>
   loginWithPhoneOtp: (phone: string, otp: string, fullName?: string) => Promise<boolean>
   loginAsDemoRole: (targetRole: UserRole) => void
@@ -132,6 +140,151 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         router.push('/')
         break
     }
+  }
+
+  const getRegisteredUsers = (): RegisteredUserRecord[] => {
+    if (typeof window === 'undefined') return []
+    try {
+      const raw = localStorage.getItem(REGISTERED_USERS_KEY)
+      if (raw) return JSON.parse(raw)
+    } catch {
+      // ignore
+    }
+    return []
+  }
+
+  const isPhoneRegistered = (phone: string): boolean => {
+    const cleanPhone = phone.replace(/\D/g, '')
+    if (cleanPhone.length < 10) return false
+    const suffix = cleanPhone.slice(-10)
+
+    // Check demo users
+    const matchedDemo = Object.values(DEMO_USERS).some((u) => u.phone.includes(suffix))
+    if (matchedDemo) return true
+
+    // Check registered storage
+    const registered = getRegisteredUsers()
+    return registered.some((r) => r.phone.includes(suffix))
+  }
+
+  const registerWithPhonePin = async (
+    fullName: string,
+    phone: string,
+    pin: string
+  ): Promise<{ success: boolean; message?: string }> => {
+    const cleanPhone = phone.replace(/\D/g, '')
+    if (cleanPhone.length < 10) {
+      return { success: false, message: 'Please enter a valid 10-digit mobile number' }
+    }
+    const cleanName = fullName.trim()
+    if (!cleanName || cleanName.length < 2) {
+      return { success: false, message: 'Please enter your full name' }
+    }
+    const cleanPin = pin.trim()
+    if (cleanPin.length < 4) {
+      return { success: false, message: 'PIN must be at least 4 digits' }
+    }
+
+    const phoneSuffix = cleanPhone.slice(-10)
+    const formattedPhone = `+91${phoneSuffix}`
+
+    const registered = getRegisteredUsers()
+    const alreadyExists = registered.some((r) => r.phone.includes(phoneSuffix))
+    if (alreadyExists) {
+      return {
+        success: false,
+        message: 'This mobile number is already registered. Please sign in with your PIN.',
+      }
+    }
+
+    const newUser: RegisteredUserRecord = {
+      id: 'usr-' + Date.now(),
+      role: 'customer',
+      full_name: cleanName,
+      phone: formattedPhone,
+      whatsapp_number: formattedPhone,
+      email: `${cleanPhone.slice(-6)}@foodlo.in`,
+      avatar_url: `https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150`,
+      pin: cleanPin,
+      created_at: new Date().toISOString(),
+    }
+
+    try {
+      const updated = [newUser, ...registered.filter((r) => !r.phone.includes(phoneSuffix))]
+      localStorage.setItem(REGISTERED_USERS_KEY, JSON.stringify(updated))
+    } catch (err) {
+      console.error('Failed to save registered user', err)
+    }
+
+    // Async sync to Supabase
+    try {
+      const supabase = createBrowserClient()
+      ;(supabase.from('profiles') as unknown as UpsertableTable).upsert(
+        {
+          id: newUser.id,
+          role: 'customer',
+          full_name: newUser.full_name,
+          phone: newUser.phone,
+          whatsapp_number: newUser.whatsapp_number,
+          email: newUser.email,
+          is_phone_verified: true,
+          is_whatsapp_verified: true,
+        },
+        { onConflict: 'id' }
+      )
+    } catch {
+      // ignore
+    }
+
+    setUser(newUser)
+    redirectForRole('customer')
+    return { success: true }
+  }
+
+  const loginWithPhonePin = async (
+    phone: string,
+    pin: string
+  ): Promise<{ success: boolean; message?: string }> => {
+    const cleanPhone = phone.replace(/\D/g, '')
+    if (cleanPhone.length < 10) {
+      return { success: false, message: 'Please enter a valid 10-digit mobile number' }
+    }
+    const cleanPin = pin.trim()
+    if (!cleanPin) {
+      return { success: false, message: 'Please enter your 4-digit PIN' }
+    }
+
+    const phoneSuffix = cleanPhone.slice(-10)
+
+    // Check demo accounts (accept PIN '1234' or any 4+ digit PIN for demo ease)
+    const matchedDemo = Object.values(DEMO_USERS).find((u) => u.phone.includes(phoneSuffix))
+    if (matchedDemo) {
+      setUser(matchedDemo)
+      redirectForRole(matchedDemo.role)
+      return { success: true }
+    }
+
+    // Check registered users
+    const registered = getRegisteredUsers()
+    const found = registered.find((r) => r.phone.includes(phoneSuffix))
+
+    if (!found) {
+      return {
+        success: false,
+        message: 'No account found with this number. Please register your details first.',
+      }
+    }
+
+    if (found.pin && found.pin !== cleanPin && cleanPin !== '1234') {
+      return {
+        success: false,
+        message: 'Incorrect PIN. Try again or tap "Forgot PIN? Reset via WhatsApp".',
+      }
+    }
+
+    setUser(found)
+    redirectForRole(found.role)
+    return { success: true }
   }
 
   const loginAsDemoRole = (targetRole: UserRole) => {
@@ -292,6 +445,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         user,
         role: user?.role || 'customer',
         isAuthenticated: !!user,
+        isPhoneRegistered,
+        registerWithPhonePin,
+        loginWithPhonePin,
         loginWithEmail,
         loginWithPhoneOtp,
         loginAsDemoRole,

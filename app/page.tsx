@@ -17,11 +17,17 @@ import { SEED_CAFES, SEED_MENU_ITEMS, CATEGORIES } from '@/lib/data/mockData'
 import { useCart } from '@/lib/context/CartContext'
 import { getStoredOrders, SAGA_ORDERS_EVENT } from '@/lib/services/orderService'
 import {
+  getStoredCafes,
+  getStoredMenuItems,
+  FOODLO_CAFE_EVENT,
+  FOODLO_MENU_EVENT,
+} from '@/lib/services/cafeService'
+import {
   getDynamicConfig,
   SAGA_CONFIG_EVENT,
   type DynamicPlatformConfig,
 } from '@/lib/services/configService'
-import type { MenuItem, Order } from '@/lib/supabase/types'
+import type { Cafe, MenuItem, Order } from '@/lib/supabase/types'
 
 export default function Home() {
   const [searchQuery, setSearchQuery] = useState('')
@@ -29,6 +35,34 @@ export default function Home() {
   const { addItem, getItemQuantity, updateQuantity } = useCart()
   const [activeOrder, setActiveOrder] = useState<Order | null>(null)
   const [platformConfig, setPlatformConfig] = useState<DynamicPlatformConfig>(() => getDynamicConfig())
+
+  // Dynamic Cafes & Menu Items state
+  const [cafes, setCafes] = useState<Cafe[]>(() => {
+    if (typeof window !== 'undefined') return getStoredCafes()
+    return SEED_CAFES
+  })
+  const [menuItems, setMenuItems] = useState<MenuItem[]>(() => {
+    if (typeof window !== 'undefined') return getStoredMenuItems()
+    return SEED_MENU_ITEMS
+  })
+
+  // Listen to cafe and menu item status updates in real-time
+  useEffect(() => {
+    const handleSync = () => {
+      setCafes(getStoredCafes())
+      setMenuItems(getStoredMenuItems())
+    }
+
+    window.addEventListener(FOODLO_CAFE_EVENT, handleSync)
+    window.addEventListener(FOODLO_MENU_EVENT, handleSync)
+    window.addEventListener('storage', handleSync)
+
+    return () => {
+      window.removeEventListener(FOODLO_CAFE_EVENT, handleSync)
+      window.removeEventListener(FOODLO_MENU_EVENT, handleSync)
+      window.removeEventListener('storage', handleSync)
+    }
+  }, [])
 
   useEffect(() => {
     const handleConfig = () => setPlatformConfig(getDynamicConfig())
@@ -64,7 +98,7 @@ export default function Home() {
 
   // Filter menu items by search & category
   const filteredMenuItems = useMemo(() => {
-    return SEED_MENU_ITEMS.filter((item) => {
+    return menuItems.filter((item) => {
       const matchesCategory =
         selectedCategory === 'All' || item.category.toLowerCase() === selectedCategory.toLowerCase()
       const matchesSearch =
@@ -73,26 +107,26 @@ export default function Home() {
         item.category.toLowerCase().includes(searchQuery.toLowerCase())
       return matchesCategory && matchesSearch
     })
-  }, [selectedCategory, searchQuery])
+  }, [menuItems, selectedCategory, searchQuery])
 
   // Filter cafes by search query
   const filteredCafes = useMemo(() => {
-    if (!searchQuery) return SEED_CAFES
-    return SEED_CAFES.filter(
+    if (!searchQuery) return cafes
+    return cafes.filter(
       (cafe) =>
         cafe.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         cafe.tagline?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         cafe.address.toLowerCase().includes(searchQuery.toLowerCase())
     )
-  }, [searchQuery])
+  }, [cafes, searchQuery])
 
   // Best Sellers selection
   const bestSellers = useMemo(() => {
-    return SEED_MENU_ITEMS.filter((item) => item.tags.includes('Bestseller')).slice(0, 5)
-  }, [])
+    return menuItems.filter((item) => item.tags.includes('Bestseller')).slice(0, 5)
+  }, [menuItems])
 
   const handleAddBestSeller = (item: MenuItem) => {
-    const cafe = SEED_CAFES.find((c) => c.id === item.cafe_id) || SEED_CAFES[0]
+    const cafe = cafes.find((c) => c.id === item.cafe_id) || SEED_CAFES[0]
     addItem(item, { id: cafe.id, name: cafe.name, slug: cafe.slug })
   }
 
@@ -255,18 +289,18 @@ export default function Home() {
                   {/* Status Badges */}
                   <div className="absolute top-3 left-3 flex items-center gap-1.5">
                     <span
-                      className={`px-2.5 py-1 rounded-full text-[11px] font-bold backdrop-blur-md flex items-center gap-1 ${
+                      className={`px-2.5 py-1 rounded-full text-[11px] font-bold backdrop-blur-md flex items-center gap-1.5 ${
                         cafe.is_open
                           ? 'bg-white/95 text-emerald-700 shadow-xs'
-                          : 'bg-gray-900/80 text-gray-200'
+                          : 'bg-rose-950/85 text-rose-200 border border-rose-500/30'
                       }`}
                     >
                       <span
                         className={`w-1.5 h-1.5 rounded-full ${
-                          cafe.is_open ? 'bg-emerald-500 animate-pulse' : 'bg-gray-400'
+                          cafe.is_open ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'
                         }`}
                       />
-                      {cafe.is_open ? 'Open Now' : 'Closed'}
+                      {cafe.is_open ? 'Open Now' : 'Closed • Opens Soon'}
                     </span>
                   </div>
 
@@ -361,33 +395,59 @@ export default function Home() {
                     </div>
 
                     <div className="mt-3">
-                      {qty === 0 ? (
-                        <button
-                          onClick={() => handleAddBestSeller(item)}
-                          className="w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-colors tap-feedback flex items-center justify-center gap-1 shadow-xs cursor-pointer"
-                        >
-                          <Plus className="w-3.5 h-3.5" />
-                          ADD TO CART
-                        </button>
-                      ) : (
-                        <div className="flex items-center justify-between bg-emerald-50 border border-emerald-200 rounded-xl px-2 py-1">
-                          <button
-                            onClick={() => updateQuantity(item.id, -1)}
-                            className="w-7 h-6 flex items-center justify-center font-bold text-emerald-800 text-sm"
-                          >
-                            -
-                          </button>
-                          <span className="text-xs font-bold text-emerald-900">
-                            {qty} added
-                          </span>
-                          <button
-                            onClick={() => updateQuantity(item.id, 1)}
-                            className="w-7 h-6 flex items-center justify-center font-bold text-emerald-800 text-sm"
-                          >
-                            +
-                          </button>
-                        </div>
-                      )}
+                      {(() => {
+                        const parentCafe = cafes.find((c) => c.id === item.cafe_id) || SEED_CAFES[0]
+                        const isStoreClosed = !parentCafe.is_open
+                        const isOutOfStock = item.is_available === false
+
+                        if (isStoreClosed) {
+                          return (
+                            <button
+                              disabled
+                              className="w-full py-1.5 bg-gray-100 text-gray-400 rounded-xl text-xs font-bold cursor-not-allowed border border-gray-200"
+                            >
+                              Store Closed
+                            </button>
+                          )
+                        }
+                        if (isOutOfStock) {
+                          return (
+                            <span className="w-full py-1.5 bg-rose-50 text-rose-600 border border-rose-200 rounded-xl text-xs font-bold block text-center">
+                              Out Of Stock
+                            </span>
+                          )
+                        }
+                        if (qty === 0) {
+                          return (
+                            <button
+                              onClick={() => handleAddBestSeller(item)}
+                              className="w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-colors tap-feedback flex items-center justify-center gap-1 shadow-xs cursor-pointer"
+                            >
+                              <Plus className="w-3.5 h-3.5" />
+                              ADD TO CART
+                            </button>
+                          )
+                        }
+                        return (
+                          <div className="flex items-center justify-between bg-emerald-50 border border-emerald-200 rounded-xl px-2 py-1">
+                            <button
+                              onClick={() => updateQuantity(item.id, -1)}
+                              className="w-7 h-6 flex items-center justify-center font-bold text-emerald-800 text-sm"
+                            >
+                              -
+                            </button>
+                            <span className="text-xs font-bold text-emerald-900">
+                              {qty} added
+                            </span>
+                            <button
+                              onClick={() => updateQuantity(item.id, 1)}
+                              className="w-7 h-6 flex items-center justify-center font-bold text-emerald-800 text-sm"
+                            >
+                              +
+                            </button>
+                          </div>
+                        )
+                      })()}
                     </div>
                   </div>
                 </div>
@@ -453,38 +513,60 @@ export default function Home() {
                         {cafe.name}
                       </Link>
 
-                      {qty === 0 ? (
-                        <button
-                          onClick={() =>
-                            addItem(item, {
-                              id: cafe.id,
-                              name: cafe.name,
-                              slug: cafe.slug,
-                            })
-                          }
-                          className="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-600 hover:text-white text-emerald-700 border border-emerald-200 hover:border-emerald-600 rounded-lg text-xs font-bold transition-all tap-feedback cursor-pointer"
-                        >
-                          + ADD
-                        </button>
-                      ) : (
-                        <div className="flex items-center border border-emerald-300 bg-emerald-50 rounded-lg px-1.5 py-0.5">
-                          <button
-                            onClick={() => updateQuantity(item.id, -1)}
-                            className="w-5 h-5 flex items-center justify-center font-bold text-emerald-800 text-xs"
-                          >
-                            -
-                          </button>
-                          <span className="px-1.5 text-xs font-bold text-emerald-900">
-                            {qty}
-                          </span>
-                          <button
-                            onClick={() => updateQuantity(item.id, 1)}
-                            className="w-5 h-5 flex items-center justify-center font-bold text-emerald-800 text-xs"
-                          >
-                            +
-                          </button>
-                        </div>
-                      )}
+                      {(() => {
+                        const isStoreClosed = !cafe.is_open
+                        const isOutOfStock = item.is_available === false
+
+                        if (isStoreClosed) {
+                          return (
+                            <span className="px-2.5 py-1 bg-gray-100 text-gray-400 rounded-lg text-xs font-bold border border-gray-200">
+                              Closed
+                            </span>
+                          )
+                        }
+                        if (isOutOfStock) {
+                          return (
+                            <span className="px-2.5 py-1 bg-rose-50 text-rose-600 rounded-lg text-xs font-bold border border-rose-200">
+                              Out Of Stock
+                            </span>
+                          )
+                        }
+                        if (qty === 0) {
+                          return (
+                            <button
+                              onClick={() =>
+                                addItem(item, {
+                                  id: cafe.id,
+                                  name: cafe.name,
+                                  slug: cafe.slug,
+                                })
+                              }
+                              className="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-600 hover:text-white text-emerald-700 border border-emerald-200 hover:border-emerald-600 rounded-lg text-xs font-bold transition-all tap-feedback cursor-pointer"
+                            >
+                              + ADD
+                            </button>
+                          )
+                        }
+                        return (
+                          <div className="flex items-center border border-emerald-300 bg-emerald-50 rounded-lg px-1.5 py-0.5">
+                            <button
+                              onClick={() => updateQuantity(item.id, -1)}
+                              className="w-5 h-5 flex items-center justify-center font-bold text-emerald-800 text-xs"
+                            >
+                              -
+                            </button>
+                            <span className="px-1.5 text-xs font-bold text-emerald-900">
+                              {qty}
+                            </span>
+                            <button
+                              onClick={() => updateQuantity(item.id, 1)}
+                              className="w-5 h-5 flex items-center justify-center font-bold text-emerald-800 text-xs"
+                            >
+                              +
+                            </button>
+                          </div>
+                        )
+                      })()}
                     </div>
                   </div>
                 </div>

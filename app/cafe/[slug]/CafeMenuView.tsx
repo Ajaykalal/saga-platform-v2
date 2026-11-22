@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useMemo } from 'react'
+import React, { useState, useMemo, useEffect } from 'react'
 import Link from 'next/link'
 import Navbar from '@/components/Navbar'
 import {
@@ -14,6 +14,12 @@ import {
   Info,
 } from 'lucide-react'
 import { useCart } from '@/lib/context/CartContext'
+import {
+  getCafeById,
+  getStoredMenuItems,
+  FOODLO_CAFE_EVENT,
+  FOODLO_MENU_EVENT,
+} from '@/lib/services/cafeService'
 import type { Cafe, MenuItem } from '@/lib/supabase/types'
 
 interface CafeMenuViewProps {
@@ -22,20 +28,55 @@ interface CafeMenuViewProps {
 }
 
 export default function CafeMenuView({ cafe, menuItems }: CafeMenuViewProps) {
+  const [liveCafe, setLiveCafe] = useState<Cafe>(() => {
+    if (typeof window !== 'undefined') {
+      return getCafeById(cafe.id) || cafe
+    }
+    return cafe
+  })
+
+  const [liveMenuItems, setLiveMenuItems] = useState<MenuItem[]>(() => {
+    if (typeof window !== 'undefined') {
+      const stored = getStoredMenuItems(cafe.id)
+      if (stored && stored.length > 0) return stored
+    }
+    return menuItems
+  })
+
   const [selectedCategory, setSelectedCategory] = useState<string>('All')
   const [searchQuery, setSearchQuery] = useState<string>('')
   const { addItem, updateQuantity, getItemQuantity } = useCart()
 
+  // Real-time sync with merchant & admin updates
+  useEffect(() => {
+    const handleSync = () => {
+      const updatedCafe = getCafeById(cafe.id)
+      if (updatedCafe) setLiveCafe(updatedCafe)
+      const updatedItems = getStoredMenuItems(cafe.id)
+      if (updatedItems && updatedItems.length > 0) setLiveMenuItems(updatedItems)
+    }
+
+    window.addEventListener(FOODLO_CAFE_EVENT, handleSync)
+    window.addEventListener(FOODLO_MENU_EVENT, handleSync)
+    window.addEventListener('storage', handleSync)
+
+    return () => {
+      window.removeEventListener(FOODLO_CAFE_EVENT, handleSync)
+      window.removeEventListener(FOODLO_MENU_EVENT, handleSync)
+      window.removeEventListener('storage', handleSync)
+    }
+  }, [cafe.id])
+
   // Extract unique categories available in this cafe's menu
   const cafeCategories = useMemo(() => {
     const set = new Set<string>()
-    menuItems.forEach((item) => set.add(item.category))
+    liveMenuItems.forEach((item) => set.add(item.category))
     return ['All', ...Array.from(set)]
-  }, [menuItems])
+  }, [liveMenuItems])
 
   // Filter items by category & search
   const filteredItems = useMemo(() => {
-    return menuItems.filter((item) => {
+    return liveMenuItems.filter((item) => {
       const matchCat =
         selectedCategory === 'All' ||
         item.category.toLowerCase() === selectedCategory.toLowerCase()
@@ -44,26 +85,45 @@ export default function CafeMenuView({ cafe, menuItems }: CafeMenuViewProps) {
         item.description?.toLowerCase().includes(searchQuery.toLowerCase())
       return matchCat && matchSearch
     })
-  }, [menuItems, selectedCategory, searchQuery])
+  }, [liveMenuItems, selectedCategory, searchQuery])
 
   return (
     <div className="min-h-screen bg-[#F9FAFB] pb-16">
       {/* Top App Bar */}
       <Navbar
-        cafeName={cafe.name}
-        deliveryTime={cafe.delivery_time_min}
-        isOpen={cafe.is_open}
+        cafeName={liveCafe.name}
+        deliveryTime={liveCafe.delivery_time_min}
+        isOpen={liveCafe.is_open}
         showBack={true}
       />
 
       <main className="max-w-4xl mx-auto px-4 sm:px-6 pt-4 space-y-6">
+        {/* Closed Store Banner Alert */}
+        {!liveCafe.is_open && (
+          <div className="bg-rose-50 border border-rose-200 rounded-2xl p-4 flex items-center gap-3 text-rose-900 shadow-xs animate-slideIn">
+            <div className="w-10 h-10 rounded-xl bg-rose-600 text-white flex items-center justify-center font-bold text-base shrink-0">
+              🔴
+            </div>
+            <div>
+              <span className="font-extrabold text-sm block text-rose-950">
+                Kitchen is Currently Closed
+              </span>
+              <span className="text-xs text-rose-800">
+                {liveCafe.name} is not taking orders right now. You can browse the menu; ordering resumes when the kitchen opens.
+              </span>
+            </div>
+          </div>
+        )}
+
         {/* Cafe Banner Header (Matching Stitch menu_screen header aesthetic) */}
         <section className="bg-white rounded-3xl overflow-hidden border border-gray-200/80 shadow-xs">
           <div className="relative h-48 sm:h-64 w-full bg-gray-100">
             <img
-              src={cafe.banner_url || ''}
-              alt={cafe.name}
-              className="w-full h-full object-cover"
+              src={liveCafe.banner_url || ''}
+              alt={liveCafe.name}
+              className={`w-full h-full object-cover transition-all ${
+                !liveCafe.is_open ? 'grayscale-[20%]' : ''
+              }`}
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
 
@@ -79,27 +139,27 @@ export default function CafeMenuView({ cafe, menuItems }: CafeMenuViewProps) {
             <div className="absolute top-4 right-4">
               <span
                 className={`px-3 py-1 rounded-full text-xs font-bold backdrop-blur-md flex items-center gap-1.5 ${
-                  cafe.is_open
+                  liveCafe.is_open
                     ? 'bg-emerald-600 text-white shadow-xs'
-                    : 'bg-gray-900/80 text-gray-300'
+                    : 'bg-rose-900/90 text-rose-100 border border-rose-500/30'
                 }`}
               >
                 <span
                   className={`w-2 h-2 rounded-full ${
-                    cafe.is_open ? 'bg-white animate-pulse' : 'bg-gray-400'
+                    liveCafe.is_open ? 'bg-white animate-pulse' : 'bg-rose-400'
                   }`}
                 />
-                {cafe.is_open ? 'Open Now • 25 min' : 'Closed'}
+                {liveCafe.is_open ? 'Open Now • 25 min' : 'Closed for Orders'}
               </span>
             </div>
 
             {/* Banner bottom details */}
             <div className="absolute bottom-4 left-4 right-4 text-white">
               <h1 className="text-xl sm:text-3xl font-extrabold tracking-tight drop-shadow-xs">
-                {cafe.name}
+                {liveCafe.name}
               </h1>
               <p className="text-xs sm:text-sm text-gray-200 drop-shadow-xs mt-0.5 line-clamp-1">
-                {cafe.tagline}
+                {liveCafe.tagline}
               </p>
             </div>
           </div>
@@ -109,25 +169,25 @@ export default function CafeMenuView({ cafe, menuItems }: CafeMenuViewProps) {
             <div className="flex items-center gap-4 text-gray-600">
               <div className="flex items-center gap-1 text-gray-900 font-bold">
                 <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
-                <span>{cafe.rating.toFixed(1)}</span>
+                <span>{liveCafe.rating.toFixed(1)}</span>
                 <span className="text-gray-400 font-normal">
-                  ({cafe.rating_count}+ reviews)
+                  ({liveCafe.rating_count}+ reviews)
                 </span>
               </div>
               <span className="text-gray-300">•</span>
               <div className="flex items-center gap-1 text-gray-600 font-medium">
                 <Clock className="w-3.5 h-3.5 text-emerald-600" />
-                <span>{cafe.delivery_time_min} mins delivery</span>
+                <span>{liveCafe.delivery_time_min} mins delivery</span>
               </div>
               <span className="text-gray-300 hidden sm:inline">•</span>
               <div className="text-gray-500 hidden sm:inline">
-                Min Order ₹{cafe.min_order_amount_inr || 200}
+                Min Order ₹{liveCafe.min_order_amount_inr || 200}
               </div>
             </div>
 
             <div className="text-gray-500 flex items-center gap-1 text-[11px] truncate max-w-xs">
               <MapPin className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
-              <span className="truncate">{cafe.address}</span>
+              <span className="truncate">{liveCafe.address}</span>
             </div>
           </div>
         </section>
@@ -141,7 +201,7 @@ export default function CafeMenuView({ cafe, menuItems }: CafeMenuViewProps) {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder={`Search in ${cafe.name}...`}
+              placeholder={`Search in ${liveCafe.name}...`}
               className="w-full h-10 pl-10 pr-4 bg-white border border-gray-200 rounded-xl text-xs font-medium text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all shadow-2xs"
             />
           </div>
@@ -167,7 +227,7 @@ export default function CafeMenuView({ cafe, menuItems }: CafeMenuViewProps) {
           </div>
         </section>
 
-        {/* Menu Items Grid (Matching Stitch menu_screen line 151) */}
+        {/* Menu Items Grid (Matching Stitch menu_screen line 151 & local Sagwara screenshots) */}
         <section className="space-y-4">
           <div className="flex justify-between items-center">
             <h2 className="text-lg font-bold text-gray-900">
@@ -190,22 +250,30 @@ export default function CafeMenuView({ cafe, menuItems }: CafeMenuViewProps) {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {filteredItems.map((item) => {
                 const qty = getItemQuantity(item.id)
+                const isItemAvailable = item.is_available !== false
+                const isStoreOpen = liveCafe.is_open !== false
 
                 return (
                   <article
                     key={item.id}
-                    className="bg-white rounded-2xl overflow-hidden border border-gray-200/80 shadow-xs hover:border-emerald-300 transition-all flex flex-col justify-between group"
+                    className={`bg-white rounded-2xl overflow-hidden border transition-all flex flex-col justify-between group ${
+                      !isItemAvailable
+                        ? 'border-gray-200 opacity-80'
+                        : 'border-gray-200/80 shadow-xs hover:border-emerald-300'
+                    }`}
                   >
-                    {/* Item Image with Veg Badge */}
+                    {/* Item Image with Veg Badge & Out of Stock Overlay */}
                     <div className="relative h-48 w-full bg-gray-100 overflow-hidden">
                       <img
                         src={item.image_url}
                         alt={item.name}
-                        className="w-full h-full object-cover group-hover:scale-104 transition-transform duration-500"
+                        className={`w-full h-full object-cover transition-transform duration-500 ${
+                          !isItemAvailable ? 'grayscale-[40%]' : 'group-hover:scale-104'
+                        }`}
                       />
 
-                      {/* Veg indicator dot (Matching Stitch line 156) */}
-                      <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-xs p-1 rounded-sm border border-emerald-500/20 shadow-xs">
+                      {/* Veg indicator dot */}
+                      <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-xs p-1 rounded-sm border border-emerald-500/20 shadow-xs z-10">
                         <div
                           className={`w-3 h-3 rounded-full ring-2 ring-white ${
                             item.is_veg ? 'bg-emerald-600' : 'bg-red-600'
@@ -215,7 +283,7 @@ export default function CafeMenuView({ cafe, menuItems }: CafeMenuViewProps) {
 
                       {/* Tags */}
                       {item.tags && item.tags.length > 0 && (
-                        <div className="absolute top-3 left-3 flex gap-1">
+                        <div className="absolute top-3 left-3 flex gap-1 z-10">
                           {item.tags.map((tag) => (
                             <span
                               key={tag}
@@ -224,6 +292,15 @@ export default function CafeMenuView({ cafe, menuItems }: CafeMenuViewProps) {
                               {tag}
                             </span>
                           ))}
+                        </div>
+                      )}
+
+                      {/* Out of Stock Overlay matching user screenshot */}
+                      {!isItemAvailable && (
+                        <div className="absolute inset-0 bg-black/55 backdrop-blur-[1px] flex items-center justify-center">
+                          <span className="bg-rose-600 text-white text-[11px] font-black uppercase tracking-wider px-3.5 py-1.5 rounded-full shadow-lg border border-rose-300">
+                            Out Of Stock
+                          </span>
                         </div>
                       )}
                     </div>
@@ -241,7 +318,7 @@ export default function CafeMenuView({ cafe, menuItems }: CafeMenuViewProps) {
                         </p>
                       </div>
 
-                      {/* Price & Interactive Cart Stepper (Matching Stitch menu_screen line 169) */}
+                      {/* Price & Interactive Cart Stepper */}
                       <div className="mt-4 pt-3 border-t border-gray-100 flex items-center justify-between">
                         <div className="flex flex-col">
                           <span className="text-base font-black text-emerald-700">
@@ -253,13 +330,24 @@ export default function CafeMenuView({ cafe, menuItems }: CafeMenuViewProps) {
                         </div>
 
                         <div className="min-w-[90px]">
-                          {qty === 0 ? (
+                          {!isStoreOpen ? (
+                            <button
+                              disabled
+                              className="w-full bg-gray-100 text-gray-400 py-1.5 px-3 rounded-xl text-xs font-bold cursor-not-allowed border border-gray-200"
+                            >
+                              Store Closed
+                            </button>
+                          ) : !isItemAvailable ? (
+                            <span className="text-xs font-extrabold text-rose-600 bg-rose-50 border border-rose-200 px-3 py-1.5 rounded-xl block text-center">
+                              Out Of Stock
+                            </span>
+                          ) : qty === 0 ? (
                             <button
                               onClick={() =>
                                 addItem(item, {
-                                  id: cafe.id,
-                                  name: cafe.name,
-                                  slug: cafe.slug,
+                                  id: liveCafe.id,
+                                  name: liveCafe.name,
+                                  slug: liveCafe.slug,
                                 })
                               }
                               className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-1.5 px-4 rounded-xl text-xs font-bold transition-all shadow-xs tap-feedback flex items-center justify-center gap-1 cursor-pointer"

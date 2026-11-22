@@ -29,6 +29,7 @@ import { useCart } from '@/lib/context/CartContext'
 import { createNewOrder } from '@/lib/services/orderService'
 import { SAGA_PAYMENT_CONFIG, createUpiPaymentIntent } from '@/lib/config/paymentConfig'
 import { getStoredCoupons, recordCouponUsage } from '@/lib/services/promoService'
+import { getCafeById, getStoredMenuItems } from '@/lib/services/cafeService'
 import type { Order } from '@/lib/supabase/types'
 import AddressModal from '@/components/AddressModal'
 
@@ -69,6 +70,27 @@ export default function CartDrawer() {
   const [isAddressModalOpen, setIsAddressModalOpen] = useState(false)
   const [couponInput, setCouponInput] = useState('')
 
+  // Live cafe open/closed status check
+  const liveCafe = React.useMemo(() => {
+    if (!activeCafe || typeof window === 'undefined') return null
+    return getCafeById(activeCafe.id)
+  }, [activeCafe])
+  const isStoreClosed = liveCafe ? !liveCafe.is_open : false
+
+  // Live items out-of-stock check
+  const storedMenuItems = React.useMemo(() => {
+    if (typeof window === 'undefined') return []
+    return getStoredMenuItems()
+  }, [])
+
+  const outOfStockCartItems = React.useMemo(() => {
+    return items.filter((cartItem) => {
+      const match = storedMenuItems.find((m) => m.id === cartItem.id)
+      return match && match.is_available === false
+    })
+  }, [items, storedMenuItems])
+  const hasOutOfStock = outOfStockCartItems.length > 0
+
   const availableCoupons = React.useMemo(() => {
     if (typeof window === 'undefined') return []
     const all = getStoredCoupons()
@@ -86,7 +108,15 @@ export default function CartDrawer() {
   }
 
   const handleCheckout = async () => {
-    if (!activeCafe || items.length === 0 || isBelowMinimumOrder || !isDeliverable) return
+    if (
+      !activeCafe ||
+      items.length === 0 ||
+      isBelowMinimumOrder ||
+      !isDeliverable ||
+      isStoreClosed ||
+      hasOutOfStock
+    )
+      return
     setIsPlacingOrder(true)
 
     try {
@@ -311,6 +341,32 @@ export default function CartDrawer() {
               </div>
             </div>
 
+            {/* Closed Kitchen Warning Alert */}
+            {isStoreClosed && (
+              <div className="bg-rose-50 border border-rose-300 rounded-2xl p-3.5 flex items-start gap-2.5 text-xs text-rose-900 animate-slideIn">
+                <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <span className="font-extrabold text-rose-950 block">Kitchen Currently Closed</span>
+                  <p className="text-[11px] text-rose-800 mt-0.5">
+                    <strong>{liveCafe?.name || 'This cafe'}</strong> has temporarily closed order taking. Orders cannot be placed until the kitchen opens.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Out of Stock Items Alert */}
+            {hasOutOfStock && (
+              <div className="bg-rose-50 border border-rose-300 rounded-2xl p-3.5 flex items-start gap-2.5 text-xs text-rose-900 animate-slideIn">
+                <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <span className="font-extrabold text-rose-950 block">Dishes Out Of Stock</span>
+                  <p className="text-[11px] text-rose-800 mt-0.5">
+                    The kitchen has run out of: <strong>{outOfStockCartItems.map((i) => i.name).join(', ')}</strong>. Please remove them using the trash icon to proceed with remaining items.
+                  </p>
+                </div>
+              </div>
+            )}
+
             {/* Minimum Order Value Warning Alert */}
             {isBelowMinimumOrder && (
               <div className="bg-amber-50 border border-amber-300 rounded-2xl p-3.5 flex items-start gap-2.5 text-xs text-amber-900">
@@ -350,61 +406,78 @@ export default function CartDrawer() {
                 Order Items ({items.length})
               </h3>
               <div className="divide-y divide-gray-100">
-                {items.map((cartItem) => (
-                  <div key={cartItem.id} className="py-3 flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      <div
-                        className={`w-3.5 h-3.5 rounded-xs border flex items-center justify-center shrink-0 ${
-                          cartItem.isVeg ? 'border-emerald-600' : 'border-red-600'
-                        }`}
-                      >
+                {items.map((cartItem) => {
+                  const isItemOutOfStock = outOfStockCartItems.some((o) => o.id === cartItem.id)
+
+                  return (
+                    <div
+                      key={cartItem.id}
+                      className={`py-3 flex items-center justify-between gap-3 transition-colors ${
+                        isItemOutOfStock ? 'bg-rose-50/60 rounded-xl px-2.5 my-1 border border-rose-200' : ''
+                      }`}
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0">
                         <div
-                          className={`w-1.5 h-1.5 rounded-full ${
-                            cartItem.isVeg ? 'bg-emerald-600' : 'bg-red-600'
+                          className={`w-3.5 h-3.5 rounded-xs border flex items-center justify-center shrink-0 ${
+                            cartItem.isVeg ? 'border-emerald-600' : 'border-red-600'
                           }`}
-                        />
-                      </div>
-                      <div className="truncate">
-                        <p className="text-sm font-semibold text-gray-900 truncate">{cartItem.name}</p>
-                        <p className="text-xs text-gray-500">₹{cartItem.price} each</p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-3 shrink-0">
-                      <div className="flex items-center border border-gray-200 rounded-lg bg-gray-50 overflow-hidden">
-                        <button
-                          onClick={() => updateQuantity(cartItem.id, -1)}
-                          className="w-7 h-7 flex items-center justify-center text-gray-600 hover:bg-gray-200 transition-colors tap-feedback cursor-pointer"
-                          aria-label="Decrease quantity"
                         >
-                          <Minus className="w-3 h-3" />
-                        </button>
-                        <span className="w-7 text-center text-xs font-bold text-gray-900">
-                          {cartItem.quantity}
+                          <div
+                            className={`w-1.5 h-1.5 rounded-full ${
+                              cartItem.isVeg ? 'bg-emerald-600' : 'bg-red-600'
+                            }`}
+                          />
+                        </div>
+                        <div className="truncate">
+                          <p className="text-sm font-semibold text-gray-900 truncate flex items-center gap-1.5">
+                            <span>{cartItem.name}</span>
+                            {isItemOutOfStock && (
+                              <span className="text-[10px] font-bold bg-rose-600 text-white px-1.5 py-0.2 rounded-sm shrink-0">
+                                OUT OF STOCK
+                              </span>
+                            )}
+                          </p>
+                          <p className="text-xs text-gray-500">₹{cartItem.price} each</p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-3 shrink-0">
+                        <div className="flex items-center border border-gray-200 rounded-lg bg-gray-50 overflow-hidden">
+                          <button
+                            onClick={() => updateQuantity(cartItem.id, -1)}
+                            className="w-7 h-7 flex items-center justify-center text-gray-600 hover:bg-gray-200 transition-colors tap-feedback cursor-pointer"
+                            aria-label="Decrease quantity"
+                          >
+                            <Minus className="w-3 h-3" />
+                          </button>
+                          <span className="w-7 text-center text-xs font-bold text-gray-900">
+                            {cartItem.quantity}
+                          </span>
+                          <button
+                            onClick={() => updateQuantity(cartItem.id, 1)}
+                            disabled={isItemOutOfStock}
+                            className="w-7 h-7 flex items-center justify-center text-gray-600 hover:bg-gray-200 transition-colors tap-feedback cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+                            aria-label="Increase quantity"
+                          >
+                            <Plus className="w-3 h-3" />
+                          </button>
+                        </div>
+
+                        <span className="text-sm font-bold text-gray-900 w-14 text-right">
+                          ₹{(cartItem.price * cartItem.quantity).toFixed(2)}
                         </span>
+
                         <button
-                          onClick={() => updateQuantity(cartItem.id, 1)}
-                          className="w-7 h-7 flex items-center justify-center text-gray-600 hover:bg-gray-200 transition-colors tap-feedback cursor-pointer"
-                          aria-label="Increase quantity"
+                          onClick={() => removeItem(cartItem.id)}
+                          className="text-gray-400 hover:text-red-500 transition-colors cursor-pointer"
+                          aria-label="Remove item"
                         >
-                          <Plus className="w-3 h-3" />
+                          <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
-
-                      <span className="text-sm font-bold text-gray-900 w-14 text-right">
-                        ₹{(cartItem.price * cartItem.quantity).toFixed(2)}
-                      </span>
-
-                      <button
-                        onClick={() => removeItem(cartItem.id)}
-                        className="text-gray-400 hover:text-red-500 transition-colors cursor-pointer"
-                        aria-label="Remove item"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
                     </div>
-                  </div>
-                ))}
+                  )
+                })}
               </div>
             </div>
 
@@ -754,12 +827,22 @@ export default function CartDrawer() {
           <div className="p-4 border-t border-gray-100 bg-white sticky bottom-0 z-20 shadow-lg">
             <button
               onClick={handleCheckout}
-              disabled={isPlacingOrder || isBelowMinimumOrder || !isDeliverable}
+              disabled={
+                isPlacingOrder ||
+                isBelowMinimumOrder ||
+                !isDeliverable ||
+                isStoreClosed ||
+                hasOutOfStock
+              }
               className="w-full bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-300 disabled:text-gray-600 disabled:cursor-not-allowed disabled:shadow-none text-white font-bold py-3.5 px-6 rounded-2xl flex items-center justify-between shadow-[0px_4px_20px_rgba(16,185,129,0.35)] transition-all tap-feedback cursor-pointer"
             >
               <div className="flex flex-col text-left">
                 <span className="text-[10px] uppercase font-semibold text-emerald-100 tracking-wider">
-                  {isBelowMinimumOrder
+                  {isStoreClosed
+                    ? 'Kitchen Closed'
+                    : hasOutOfStock
+                    ? 'Unavailable Dish in Cart'
+                    : isBelowMinimumOrder
                     ? 'Min Order Value ₹200'
                     : !isDeliverable
                     ? 'Distance Exceeded'
@@ -772,6 +855,10 @@ export default function CartDrawer() {
                 <span>
                   {isPlacingOrder
                     ? 'Confirming...'
+                    : isStoreClosed
+                    ? 'Kitchen Currently Closed'
+                    : hasOutOfStock
+                    ? 'Remove Out-of-Stock Items'
                     : isBelowMinimumOrder
                     ? `Add ₹${amountNeededForMinimum.toFixed(0)} More`
                     : !isDeliverable

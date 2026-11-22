@@ -22,6 +22,7 @@ import {
   X,
   Sliders,
   Bike,
+  MapPin,
   ChevronLeft,
   ChevronRight,
   MessageCircle,
@@ -67,16 +68,29 @@ import {
   getCafeBankDetails,
   type SettlementBatchResult,
 } from '@/lib/services/settlementService'
+import {
+  getStoredCafes,
+  updateCafeStatus,
+  updateCafeDetails,
+  FOODLO_CAFE_EVENT,
+} from '@/lib/services/cafeService'
 import type { Cafe, Wallet, KycStatus, Order } from '@/lib/supabase/types'
 
 export default function AdminPage() {
   const { user } = useAuth()
 
-  // Active navigation tab
-  const [activeTab, setActiveTab] = useState<'orders' | 'riders' | 'dynamic_settings' | 'escrow' | 'kyc' | 'commission'>('orders')
+  // Active navigation tab (default to clean overview: 'cafes')
+  const [activeTab, setActiveTab] = useState<'cafes' | 'orders' | 'riders' | 'dynamic_settings' | 'escrow' | 'kyc' | 'commission'>('cafes')
 
-  // Cafes State (allows approval/rejection and commission rate updates)
-  const [cafes, setCafes] = useState<Cafe[]>(SEED_CAFES)
+  // Cafes State (allows open/closed toggling, approval/rejection and commission rate updates)
+  const [cafes, setCafes] = useState<Cafe[]>(() => {
+    if (typeof window !== 'undefined') return getStoredCafes()
+    return SEED_CAFES
+  })
+
+  // Cafe search and operating filter in admin
+  const [cafeSearchQuery, setCafeSearchQuery] = useState('')
+  const [cafeOperatingFilter, setCafeOperatingFilter] = useState<'all' | 'open' | 'closed'>('all')
 
   // Orders State (synced with platform orders service)
   const [orders, setOrders] = useState<Order[]>(() => {
@@ -138,6 +152,7 @@ export default function AdminPage() {
 
   useEffect(() => {
     const syncData = () => {
+      setCafes(getStoredCafes())
       setOrders(getStoredOrders())
       const storedWallets = getStoredWallets()
       setWallets(storedWallets)
@@ -160,11 +175,13 @@ export default function AdminPage() {
     }
     syncData()
     window.addEventListener(SAGA_ORDERS_EVENT, syncData)
+    window.addEventListener(FOODLO_CAFE_EVENT, syncData)
     window.addEventListener('storage', syncData)
     window.addEventListener(SAGA_CONFIG_EVENT, syncData)
     window.addEventListener(SAGA_PROMO_EVENT, syncData)
     return () => {
       window.removeEventListener(SAGA_ORDERS_EVENT, syncData)
+      window.removeEventListener(FOODLO_CAFE_EVENT, syncData)
       window.removeEventListener('storage', syncData)
       window.removeEventListener(SAGA_CONFIG_EVENT, syncData)
       window.removeEventListener(SAGA_PROMO_EVENT, syncData)
@@ -179,46 +196,46 @@ export default function AdminPage() {
     setTimeout(() => setToastMessage(null), 4000)
   }
 
+  // --- CAFE OPERATING STATUS TOGGLE (Admin override) ---
+  const handleToggleAdminCafeStatus = (cafeId: string, currentOpen: boolean) => {
+    const updated = updateCafeStatus(cafeId, !currentOpen)
+    setCafes(getStoredCafes())
+    sounds.playNotificationChime()
+    showToast(
+      !currentOpen
+        ? `🟢 "${updated.name}" is now marked ONLINE & taking orders!`
+        : `🔴 "${updated.name}" is now marked OFFLINE (Kitchen closed).`
+    )
+  }
+
   // --- KYC QUEUE MANAGEMENT ---
   const [kycFilter, setKycFilter] = useState<'pending' | 'approved' | 'rejected' | 'all'>('pending')
   const [rejectingCafeId, setRejectingCafeId] = useState<string | null>(null)
   const [rejectionReason, setRejectionReason] = useState<string>('')
 
   const handleApproveCafe = (cafeId: string) => {
-    setCafes((prev) =>
-      prev.map((c) =>
-        c.id === cafeId
-          ? {
-              ...c,
-              kyc_status: 'approved' as KycStatus,
-              is_open: true,
-              rejection_reason: null,
-              updated_at: new Date().toISOString(),
-            }
-          : c
-      )
-    )
+    updateCafeDetails(cafeId, {
+      kyc_status: 'approved' as KycStatus,
+      is_open: true,
+      rejection_reason: null,
+    })
+    setCafes(getStoredCafes())
     const approvedCafe = cafes.find((c) => c.id === cafeId)
+    sounds.playSuccessCelebration()
     showToast(`✅ "${approvedCafe?.name}" KYC Approved and store activated!`)
   }
 
   const handleRejectCafe = () => {
     if (!rejectingCafeId) return
     const reason = rejectionReason.trim() || 'Missing or invalid FSSAI/GST compliance documents.'
-    setCafes((prev) =>
-      prev.map((c) =>
-        c.id === rejectingCafeId
-          ? {
-              ...c,
-              kyc_status: 'rejected' as KycStatus,
-              rejection_reason: reason,
-              is_open: false,
-              updated_at: new Date().toISOString(),
-            }
-          : c
-      )
-    )
+    updateCafeDetails(rejectingCafeId, {
+      kyc_status: 'rejected' as KycStatus,
+      rejection_reason: reason,
+      is_open: false,
+    })
+    setCafes(getStoredCafes())
     const rejectedCafe = cafes.find((c) => c.id === rejectingCafeId)
+    sounds.playNotificationChime()
     showToast(`⚠️ "${rejectedCafe?.name}" KYC marked as Rejected.`)
     setRejectingCafeId(null)
     setRejectionReason('')
@@ -239,20 +256,56 @@ export default function AdminPage() {
   }
 
   const handleSaveCommission = (cafeId: string) => {
-    setCafes((prev) =>
-      prev.map((c) =>
-        c.id === cafeId
-          ? {
-              ...c,
-              commission_rate: Number(newCommissionRate),
-              updated_at: new Date().toISOString(),
-            }
-          : c
-      )
-    )
+    updateCafeDetails(cafeId, { commission_rate: Number(newCommissionRate) })
+    setCafes(getStoredCafes())
     setEditingCafeId(null)
-    showToast(`Updated commission rate to ${newCommissionRate}%`)
+    sounds.playNotificationChime()
+    showToast(`Updated commission rate for cafe to ${newCommissionRate}%`)
   }
+
+  // --- CAFE-BY-CAFE DYNAMIC PERFORMANCE METRICS ---
+  const cafePerformanceList = React.useMemo(() => {
+    return cafes.map((c) => {
+      const cafeOrders = orders.filter((o) => o.cafe_id === c.id)
+      const deliveredOrders = cafeOrders.filter((o) => o.status === 'delivered')
+      const pendingOrders = cafeOrders.filter((o) =>
+        ['placed', 'confirmed', 'preparing', 'ready_for_pickup', 'out_for_delivery'].includes(o.status)
+      )
+      const cancelledOrders = cafeOrders.filter((o) => o.status === 'cancelled')
+
+      const grossSalesInr = deliveredOrders.reduce((sum, o) => sum + (o.subtotal_inr || 0), 0)
+      const commissionPercent = c.commission_rate ?? 15
+      const platformCommissionInr = Math.round((grossSalesInr * commissionPercent) / 100)
+      const netCafePayoutInr = grossSalesInr - platformCommissionInr
+      const bank = getCafeBankDetails(c.id)
+
+      return {
+        cafe: c,
+        totalOrders: cafeOrders.length,
+        deliveredOrders: deliveredOrders.length,
+        pendingOrders: pendingOrders.length,
+        cancelledOrders: cancelledOrders.length,
+        grossSalesInr,
+        platformCommissionInr,
+        netCafePayoutInr,
+        commissionPercent,
+        bank,
+      }
+    })
+  }, [cafes, orders])
+
+  const filteredCafePerformance = React.useMemo(() => {
+    return cafePerformanceList.filter((item) => {
+      const matchesQuery =
+        item.cafe.name.toLowerCase().includes(cafeSearchQuery.toLowerCase()) ||
+        item.cafe.address.toLowerCase().includes(cafeSearchQuery.toLowerCase())
+      const matchesOperating =
+        cafeOperatingFilter === 'all' ||
+        (cafeOperatingFilter === 'open' && item.cafe.is_open) ||
+        (cafeOperatingFilter === 'closed' && !item.cafe.is_open)
+      return matchesQuery && matchesOperating
+    })
+  }, [cafePerformanceList, cafeSearchQuery, cafeOperatingFilter])
 
   // --- ORDERS OVERVIEW ---
   const [orderStatusFilter, setOrderStatusFilter] = useState<string>('all')
@@ -484,6 +537,21 @@ export default function AdminPage() {
         <div className="bg-slate-950/80 border-t border-slate-800">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 flex space-x-1 sm:space-x-4 overflow-x-auto">
             <button
+              onClick={() => setActiveTab('cafes')}
+              className={`py-3 px-3 text-xs sm:text-sm font-bold flex items-center gap-2 border-b-2 whitespace-nowrap transition-all cursor-pointer ${
+                activeTab === 'cafes'
+                  ? 'border-emerald-500 text-emerald-400 bg-emerald-500/10'
+                  : 'border-transparent text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              <Building2 className="w-4 h-4" />
+              <span>🏪 Cafes &amp; Performance</span>
+              <span className="text-[10px] bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded-full font-bold">
+                {cafes.length} Stores
+              </span>
+            </button>
+
+            <button
               onClick={() => setActiveTab('orders')}
               className={`py-3 px-3 text-xs sm:text-sm font-bold flex items-center gap-2 border-b-2 whitespace-nowrap transition-all cursor-pointer ${
                 activeTab === 'orders'
@@ -492,7 +560,7 @@ export default function AdminPage() {
               }`}
             >
               <ShoppingBag className="w-4 h-4" />
-              <span>Live Platform Orders</span>
+              <span>📦 Live Orders Pipeline</span>
               <span className="text-[10px] bg-slate-800 text-slate-300 px-1.5 py-0.2 rounded-full font-bold">
                 {orders.length}
               </span>
@@ -507,9 +575,9 @@ export default function AdminPage() {
               }`}
             >
               <Bike className="w-4 h-4" />
-              <span>Campus Couriers &amp; Fleet</span>
+              <span>🛵 Campus Fleet &amp; Couriers</span>
               <span className="text-[10px] bg-emerald-900/60 text-emerald-300 px-1.5 py-0.2 rounded-full font-bold">
-                {riders.filter((r) => r.status !== 'offline').length} active
+                {riders.filter((r) => r.status !== 'offline').length} online
               </span>
             </button>
 
@@ -522,7 +590,7 @@ export default function AdminPage() {
               }`}
             >
               <Sliders className="w-4 h-4" />
-              <span>Dynamic App Controls</span>
+              <span>⚙️ Dynamic App Controls</span>
               <span className="text-[10px] bg-emerald-500/20 text-emerald-400 px-1.5 py-0.2 rounded-full font-black">
                 PROD
               </span>
@@ -537,36 +605,7 @@ export default function AdminPage() {
               }`}
             >
               <Zap className="w-4 h-4" />
-              <span>3-Day Settlement Escrow</span>
-            </button>
-
-            <button
-              onClick={() => setActiveTab('kyc')}
-              className={`py-3 px-3 text-xs sm:text-sm font-bold flex items-center gap-2 border-b-2 whitespace-nowrap transition-all cursor-pointer ${
-                activeTab === 'kyc'
-                  ? 'border-emerald-500 text-emerald-400 bg-emerald-500/10'
-                  : 'border-transparent text-slate-400 hover:text-slate-200'
-              }`}
-            >
-              <FileCheck className="w-4 h-4" />
-              <span>Cafe KYC Queue</span>
-              {pendingKycCount > 0 && (
-                <span className="bg-amber-500 text-slate-950 text-[10px] px-1.5 py-0.2 rounded-full font-black">
-                  {pendingKycCount}
-                </span>
-              )}
-            </button>
-
-            <button
-              onClick={() => setActiveTab('commission')}
-              className={`py-3 px-3 text-xs sm:text-sm font-bold flex items-center gap-2 border-b-2 whitespace-nowrap transition-all cursor-pointer ${
-                activeTab === 'commission'
-                  ? 'border-emerald-500 text-emerald-400 bg-emerald-500/10'
-                  : 'border-transparent text-slate-400 hover:text-slate-200'
-              }`}
-            >
-              <Percent className="w-4 h-4" />
-              <span>Commission Rates</span>
+              <span>🏦 3-Day Escrow Payouts</span>
             </button>
           </div>
         </div>
@@ -632,6 +671,270 @@ export default function AdminPage() {
             </span>
           </div>
         </div>
+
+        {/* TAB 0: CAFES & PERFORMANCE MATRIX (Decluttered & Dynamic) */}
+        {activeTab === 'cafes' && (
+          <div className="space-y-5">
+            {/* Top Title & Filters */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <h2 className="text-xl font-black text-slate-900 flex items-center gap-2">
+                  <span>🏪 Sagwara Cafes &amp; Kitchen Performance</span>
+                  <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
+                    {cafes.length} Stores Total
+                  </span>
+                </h2>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Dynamic cafe-by-cafe matrix showing total orders, successful deliveries, pending kitchen items, gross revenues, and live online/offline controls.
+                </p>
+              </div>
+
+              {/* Search & Operating Filter */}
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="relative">
+                  <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <input
+                    type="text"
+                    value={cafeSearchQuery}
+                    onChange={(e) => setCafeSearchQuery(e.target.value)}
+                    placeholder="Search cafe name or landmark..."
+                    className="pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-medium text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 w-56 sm:w-64"
+                  />
+                </div>
+
+                <div className="flex items-center gap-1 bg-slate-200/80 p-1 rounded-xl text-xs font-bold">
+                  <button
+                    onClick={() => setCafeOperatingFilter('all')}
+                    className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
+                      cafeOperatingFilter === 'all'
+                        ? 'bg-white text-slate-900 shadow-xs'
+                        : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    All ({cafes.length})
+                  </button>
+                  <button
+                    onClick={() => setCafeOperatingFilter('open')}
+                    className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
+                      cafeOperatingFilter === 'open'
+                        ? 'bg-emerald-600 text-white shadow-xs'
+                        : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    🟢 Online ({cafes.filter((c) => c.is_open).length})
+                  </button>
+                  <button
+                    onClick={() => setCafeOperatingFilter('closed')}
+                    className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
+                      cafeOperatingFilter === 'closed'
+                        ? 'bg-rose-600 text-white shadow-xs'
+                        : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    🔴 Closed ({cafes.filter((c) => !c.is_open).length})
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Quick Metrics Strip */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div className="bg-white rounded-xl p-3.5 border border-slate-200 shadow-2xs">
+                <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Total Cafe Orders</span>
+                <div className="text-xl font-black text-slate-900 mt-0.5">
+                  {orders.length} Orders
+                </div>
+                <span className="text-[11px] text-slate-500">Across 9 Sagwara kitchens</span>
+              </div>
+
+              <div className="bg-white rounded-xl p-3.5 border border-slate-200 shadow-2xs">
+                <span className="text-[10px] uppercase font-bold text-emerald-700 tracking-wider">Success (Delivered)</span>
+                <div className="text-xl font-black text-emerald-600 mt-0.5">
+                  {orders.filter((o) => o.status === 'delivered').length} Delivered
+                </div>
+                <span className="text-[11px] text-emerald-700 font-medium">100% completed fulfillment</span>
+              </div>
+
+              <div className="bg-white rounded-xl p-3.5 border border-slate-200 shadow-2xs">
+                <span className="text-[10px] uppercase font-bold text-amber-700 tracking-wider">In-Kitchen / Pending</span>
+                <div className="text-xl font-black text-amber-600 mt-0.5">
+                  {orders.filter((o) => ['placed', 'confirmed', 'preparing', 'ready_for_pickup', 'out_for_delivery'].includes(o.status)).length} Pending
+                </div>
+                <span className="text-[11px] text-amber-700 font-medium">Cooking &amp; dispatch pipeline</span>
+              </div>
+
+              <div className="bg-white rounded-xl p-3.5 border border-slate-200 shadow-2xs">
+                <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Delivered Volume</span>
+                <div className="text-xl font-black text-slate-900 mt-0.5">
+                  ₹{orders.filter((o) => o.status === 'delivered').reduce((sum, o) => sum + (o.subtotal_inr || 0), 0).toLocaleString('en-IN')}
+                </div>
+                <span className="text-[11px] text-slate-500">85% Cafe • 15% FoodLo</span>
+              </div>
+            </div>
+
+            {/* Cafe-by-Cafe Detailed Performance Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filteredCafePerformance.map((item) => (
+                <div
+                  key={item.cafe.id}
+                  className={`bg-white rounded-2xl border p-5 shadow-xs hover:shadow-md transition-all flex flex-col justify-between ${
+                    item.cafe.is_open ? 'border-slate-200 hover:border-emerald-400' : 'border-rose-200 bg-rose-50/20'
+                  }`}
+                >
+                  <div>
+                    {/* Header: Banner & Identity */}
+                    <div className="flex items-start gap-3.5 mb-3.5">
+                      <img
+                        src={item.cafe.banner_url || ''}
+                        alt={item.cafe.name}
+                        className={`w-14 h-14 rounded-xl object-cover border border-slate-200 shrink-0 ${
+                          !item.cafe.is_open ? 'grayscale-[30%]' : ''
+                        }`}
+                      />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between gap-2">
+                          <h3 className="font-black text-slate-900 text-sm truncate" title={item.cafe.name}>
+                            {item.cafe.name}
+                          </h3>
+                        </div>
+                        <p className="text-xs text-slate-500 flex items-center gap-1 mt-0.5 truncate">
+                          <MapPin className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                          <span className="truncate">{item.cafe.address}</span>
+                        </p>
+                        <div className="flex items-center gap-2 mt-1 text-[11px]">
+                          <span className="font-bold text-amber-600">
+                            ★ {item.cafe.rating.toFixed(1)}
+                          </span>
+                          <span className="text-slate-300">•</span>
+                          <span className="text-slate-500 font-medium">{item.cafe.delivery_time_min} mins</span>
+                          <span className="text-slate-300">•</span>
+                          <span className="text-slate-500 font-medium">Min ₹{item.cafe.min_order_amount_inr}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Operating Status Switch */}
+                    <div className="bg-slate-50 rounded-xl p-2.5 border border-slate-100 mb-3.5 flex items-center justify-between">
+                      <span className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                        <span className={`w-2 h-2 rounded-full ${item.cafe.is_open ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'}`} />
+                        <span>Operating Status:</span>
+                      </span>
+
+                      <button
+                        onClick={() => handleToggleAdminCafeStatus(item.cafe.id, item.cafe.is_open)}
+                        className={`px-3 py-1 rounded-xl text-xs font-bold transition-all tap-feedback cursor-pointer flex items-center gap-1.5 ${
+                          item.cafe.is_open
+                            ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs'
+                            : 'bg-rose-600 hover:bg-rose-700 text-white shadow-xs'
+                        }`}
+                        title={item.cafe.is_open ? 'Click to mark store OFFLINE' : 'Click to mark store ONLINE'}
+                      >
+                        <span>{item.cafe.is_open ? '🟢 ONLINE (Taking Orders)' : '🔴 OFFLINE (Closed)'}</span>
+                      </button>
+                    </div>
+
+                    {/* Dynamic Order Breakdown Metrics (One by One) */}
+                    <div className="grid grid-cols-3 gap-2 bg-slate-50 rounded-xl p-3 border border-slate-100 mb-3 text-center">
+                      <div>
+                        <span className="text-[10px] uppercase font-bold text-slate-500 block">Total Orders</span>
+                        <span className="text-base font-black text-slate-900">{item.totalOrders}</span>
+                      </div>
+                      <div className="border-x border-slate-200">
+                        <span className="text-[10px] uppercase font-bold text-emerald-700 block">Delivered</span>
+                        <span className="text-base font-black text-emerald-600">{item.deliveredOrders}</span>
+                      </div>
+                      <div>
+                        <span className="text-[10px] uppercase font-bold text-amber-700 block">Pending</span>
+                        <span className="text-base font-black text-amber-600">{item.pendingOrders}</span>
+                      </div>
+                    </div>
+
+                    {/* Financial Metrics */}
+                    <div className="space-y-1.5 text-xs bg-emerald-50/50 rounded-xl p-3 border border-emerald-100 mb-3.5">
+                      <div className="flex justify-between items-center text-slate-600">
+                        <span>Delivered Gross Sales:</span>
+                        <span className="font-bold text-slate-900">₹{item.grossSalesInr.toLocaleString('en-IN')}</span>
+                      </div>
+                      <div className="flex justify-between items-center text-emerald-800">
+                        <span className="font-semibold">Cafe Net Payout ({100 - item.commissionPercent}%):</span>
+                        <span className="font-extrabold text-emerald-700">₹{item.netCafePayoutInr.toLocaleString('en-IN')}</span>
+                      </div>
+                      <div className="flex justify-between items-center text-slate-700 pt-1 border-t border-emerald-200/60">
+                        <span className="font-semibold">FoodLo Take ({item.commissionPercent}%):</span>
+                        <span className="font-black text-slate-900">₹{item.platformCommissionInr.toLocaleString('en-IN')}</span>
+                      </div>
+                    </div>
+
+                    {/* Payout & Bank Details Card */}
+                    <div className="text-[11px] text-slate-600 bg-slate-50/80 rounded-xl p-2.5 border border-slate-200/80 mb-3.5 flex items-center justify-between">
+                      <div className="truncate">
+                        <span className="font-bold text-slate-800 block truncate">
+                          {item.bank.bankName} • {item.bank.accountNumber}
+                        </span>
+                        <span className="text-slate-400">IFSC: {item.bank.ifscCode} • UPI: {item.bank.upiId}</span>
+                      </div>
+                      <span className="text-[10px] font-bold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full shrink-0">
+                        Bank Verified
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Actions & Commission Rate */}
+                  <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+                    <button
+                      onClick={() => {
+                        setSelectedCafeFilter(item.cafe.id)
+                        setActiveTab('orders')
+                      }}
+                      className="flex-1 py-2 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
+                    >
+                      <ShoppingBag className="w-3.5 h-3.5 text-emerald-400" />
+                      <span>View {item.totalOrders} Orders</span>
+                    </button>
+
+                    {/* Commission Rate Editor */}
+                    {editingCafeId === item.cafe.id ? (
+                      <div className="flex items-center gap-1">
+                        <input
+                          type="number"
+                          min="0"
+                          max="50"
+                          step="0.5"
+                          value={newCommissionRate}
+                          onChange={(e) => setNewCommissionRate(Number(e.target.value))}
+                          className="w-14 px-2 py-1 text-xs border border-emerald-500 rounded-lg font-bold"
+                        />
+                        <button
+                          onClick={() => handleSaveCommission(item.cafe.id)}
+                          className="p-1.5 bg-emerald-600 text-white rounded-lg cursor-pointer hover:bg-emerald-700"
+                          title="Save Commission %"
+                        >
+                          <Save className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={() => setEditingCafeId(null)}
+                          className="p-1.5 bg-slate-200 text-slate-600 rounded-lg cursor-pointer hover:bg-slate-300"
+                          title="Cancel"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => handleStartEditCommission(item.cafe)}
+                        className="px-3 py-2 rounded-xl border border-slate-200 hover:border-slate-300 text-slate-700 font-bold text-xs flex items-center gap-1 cursor-pointer"
+                        title="Edit Commission %"
+                      >
+                        <Percent className="w-3.5 h-3.5 text-slate-400" />
+                        <span>{item.cafe.commission_rate}%</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* TAB 1: CAFE KYC VERIFICATION QUEUE */}
         {activeTab === 'kyc' && (

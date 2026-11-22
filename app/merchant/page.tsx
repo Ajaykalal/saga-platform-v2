@@ -56,11 +56,26 @@ import {
   requestWalletWithdrawal,
   type CafeBankDetails,
 } from '@/lib/services/settlementService'
+import {
+  getStoredCafes,
+  getCafeById,
+  updateCafeStatus,
+  getStoredMenuItems,
+  updateMenuItemAvailability,
+  addCustomMenuItem,
+  deleteCustomMenuItem,
+  FOODLO_CAFE_EVENT,
+  FOODLO_MENU_EVENT,
+} from '@/lib/services/cafeService'
 import type { Cafe, MenuItem, Order, OrderStatus, Wallet, WalletTransaction } from '@/lib/supabase/types'
 
 export default function MerchantPage() {
-  // Target cafe: default to Koramangala (owned by Rohan Mehta)
+  // Target cafe: default to Koramangala / Meesaavi (from stored cafes)
   const [cafe, setCafe] = useState<Cafe>(() => {
+    if (typeof window !== 'undefined') {
+      const stored = getStoredCafes()
+      return stored.find((c) => c.slug === 'meesaavi-cafe') || stored[0] || SEED_CAFES[0]
+    }
     return SEED_CAFES.find((c) => c.slug === 'meesaavi-cafe') || SEED_CAFES[0]
   })
 
@@ -86,8 +101,14 @@ export default function MerchantPage() {
   const [newCouponMinOrder, setNewCouponMinOrder] = useState<number>(250)
   const [newCouponDesc, setNewCouponDesc] = useState<string>('')
 
-  // Cafe Operating Open/Closed toggle
-  const [isOpen, setIsOpen] = useState<boolean>(cafe.is_open)
+  // Cafe Operating Open/Closed toggle (live synced with customer storefront & admin)
+  const [isOpen, setIsOpen] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      const live = getCafeById(cafe.id)
+      if (live) return live.is_open
+    }
+    return cafe.is_open
+  })
 
   // Live Orders state from centralized service
   const [orders, setOrders] = useState<Order[]>(() => getStoredOrders())
@@ -97,8 +118,11 @@ export default function MerchantPage() {
     orders.filter((o) => o.status === 'placed').length
   )
 
-  // Menu Items state
+  // Menu Items state (live synced with availability and out-of-stock switches)
   const [menuItems, setMenuItems] = useState<MenuItem[]>(() => {
+    if (typeof window !== 'undefined') {
+      return getStoredMenuItems(cafe.id)
+    }
     return SEED_MENU_ITEMS.filter((item) => item.cafe_id === cafe.id)
   })
 
@@ -163,11 +187,25 @@ export default function MerchantPage() {
   }
 
   const handleSwitchCafe = (newCafe: Cafe) => {
-    setCafe(newCafe)
-    setIsOpen(newCafe.is_open)
-    setMenuItems(SEED_MENU_ITEMS.filter((item) => item.cafe_id === newCafe.id))
-    setBankDetails(getCafeBankDetails(newCafe.id))
-    showToast(`Switched active kitchen to ${newCafe.name}`)
+    const live = getCafeById(newCafe.id) || newCafe
+    setCafe(live)
+    setIsOpen(live.is_open)
+    setMenuItems(getStoredMenuItems(live.id))
+    setBankDetails(getCafeBankDetails(live.id))
+    showToast(`Switched active kitchen to ${live.name}`)
+  }
+
+  const handleToggleStoreStatus = () => {
+    const nextStatus = !isOpen
+    const updated = updateCafeStatus(cafe.id, nextStatus)
+    setIsOpen(nextStatus)
+    setCafe(updated)
+    sounds.playNotificationChime()
+    showToast(
+      nextStatus
+        ? `🟢 ${cafe.name} is now OPEN & accepting orders!`
+        : `🔴 ${cafe.name} is now CLOSED for orders.`
+    )
   }
 
   const displayOrders = filterScope === 'this_cafe'
@@ -195,17 +233,29 @@ export default function MerchantPage() {
       setBankDetails(getCafeBankDetails(cafe.id))
       setDynamicConfig(getDynamicConfig())
       setCoupons(getStoredCoupons())
+
+      // Sync live cafe open status & menu availability
+      const liveCafe = getCafeById(cafe.id)
+      if (liveCafe) {
+        setCafe(liveCafe)
+        setIsOpen(liveCafe.is_open)
+      }
+      setMenuItems(getStoredMenuItems(cafe.id))
     }
 
     window.addEventListener(SAGA_ORDERS_EVENT, handleUpdate)
     window.addEventListener(SAGA_CONFIG_EVENT, handleUpdate)
     window.addEventListener(SAGA_PROMO_EVENT, handleUpdate)
+    window.addEventListener(FOODLO_CAFE_EVENT, handleUpdate)
+    window.addEventListener(FOODLO_MENU_EVENT, handleUpdate)
     window.addEventListener('storage', handleUpdate)
 
     return () => {
       window.removeEventListener(SAGA_ORDERS_EVENT, handleUpdate)
       window.removeEventListener(SAGA_CONFIG_EVENT, handleUpdate)
       window.removeEventListener(SAGA_PROMO_EVENT, handleUpdate)
+      window.removeEventListener(FOODLO_CAFE_EVENT, handleUpdate)
+      window.removeEventListener(FOODLO_MENU_EVENT, handleUpdate)
       window.removeEventListener('storage', handleUpdate)
     }
   }, [soundAlertEnabled, cafe.id, filterScope])
@@ -375,18 +425,32 @@ export default function MerchantPage() {
     }
   }
 
-  // Toggle Dish Availability
+  // Toggle Dish Availability (Instant sync across customer storefront & admin)
   const handleToggleItemAvailability = (itemId: string) => {
+    const currentItem = menuItems.find((i) => i.id === itemId)
+    if (!currentItem) return
+    const nextVal = !currentItem.is_available
+    updateMenuItemAvailability(itemId, nextVal)
     setMenuItems((prev) =>
       prev.map((item) =>
-        item.id === itemId ? { ...item, is_available: !item.is_available } : item
+        item.id === itemId ? { ...item, is_available: nextVal } : item
       )
+    )
+    sounds.playNotificationChime()
+    showToast(
+      nextVal
+        ? `✅ "${currentItem.name}" marked IN STOCK`
+        : `⚠️ "${currentItem.name}" marked OUT OF STOCK`
     )
   }
 
   // Delete Dish
   const handleDeleteItem = (itemId: string) => {
+    const itemToDelete = menuItems.find((i) => i.id === itemId)
+    deleteCustomMenuItem(itemId)
     setMenuItems((prev) => prev.filter((i) => i.id !== itemId))
+    sounds.playNotificationChime()
+    showToast(`Dish "${itemToDelete?.name || ''}" removed from menu.`)
   }
 
   // Add Dish
@@ -412,12 +476,15 @@ export default function MerchantPage() {
       updated_at: new Date().toISOString(),
     }
 
+    addCustomMenuItem(created)
     setMenuItems([created, ...menuItems])
     setIsAddModalOpen(false)
     setNewItemName('')
     setNewItemPrice('')
     setNewItemDesc('')
     setNewItemImg('')
+    sounds.playSuccessCelebration()
+    showToast(`🎉 "${created.name}" added to menu!`)
   }
 
   // Save KYC
@@ -465,12 +532,13 @@ export default function MerchantPage() {
                 <select
                   value={cafe.id}
                   onChange={(e) => {
-                    const selected = SEED_CAFES.find((c) => c.id === e.target.value)
+                    const allCafes = getStoredCafes()
+                    const selected = allCafes.find((c) => c.id === e.target.value) || SEED_CAFES.find((c) => c.id === e.target.value)
                     if (selected) handleSwitchCafe(selected)
                   }}
                   className="text-lg sm:text-xl font-extrabold text-gray-900 bg-transparent border-b-2 border-emerald-500/40 hover:border-emerald-600 focus:outline-none cursor-pointer py-0.5 pr-2"
                 >
-                  {SEED_CAFES.map((c) => (
+                  {getStoredCafes().map((c) => (
                     <option key={c.id} value={c.id} className="text-sm font-semibold text-gray-900">
                       {c.name}
                     </option>
@@ -521,15 +589,16 @@ export default function MerchantPage() {
 
             {/* Open / Closed Toggle */}
             <button
-              onClick={() => setIsOpen(!isOpen)}
+              onClick={handleToggleStoreStatus}
               className={`px-4 py-2.5 rounded-2xl font-bold text-xs flex items-center gap-2 transition-all tap-feedback cursor-pointer shadow-xs ${
                 isOpen
-                  ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
-                  : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
+                  ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-500/20'
+                  : 'bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-700'
               }`}
+              title={isOpen ? 'Click to pause orders & close kitchen' : 'Click to go online & accept orders'}
             >
               <Power className="w-4 h-4" />
-              <span>{isOpen ? 'Open for Orders' : 'Store Closed'}</span>
+              <span>{isOpen ? '🟢 Open for Orders' : '🔴 Kitchen Closed'}</span>
             </button>
           </div>
         </div>
@@ -1063,13 +1132,15 @@ export default function MerchantPage() {
                       {/* Availability Toggle */}
                       <button
                         onClick={() => handleToggleItemAvailability(item.id)}
-                        className={`px-3 py-1 rounded-lg text-xs font-bold transition-all tap-feedback cursor-pointer ${
+                        className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all tap-feedback cursor-pointer flex items-center gap-1.5 ${
                           item.is_available
-                            ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                            : 'bg-red-50 text-red-600 border border-red-200'
+                            ? 'bg-emerald-50 text-emerald-800 border border-emerald-300 hover:bg-emerald-100'
+                            : 'bg-rose-50 text-rose-700 border border-rose-300 hover:bg-rose-100'
                         }`}
+                        title={item.is_available ? 'Click to mark Out of Stock' : 'Click to mark In Stock'}
                       >
-                        {item.is_available ? 'In Stock' : 'Sold Out'}
+                        <span className={`w-2 h-2 rounded-full ${item.is_available ? 'bg-emerald-600' : 'bg-rose-600'}`} />
+                        <span>{item.is_available ? 'In Stock' : 'Out Of Stock'}</span>
                       </button>
 
                       <button
