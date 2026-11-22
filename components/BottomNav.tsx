@@ -46,8 +46,8 @@ export default function BottomNav() {
   const isOrders = pathname.startsWith('/orders')
   const isLogin = pathname === '/login'
 
-  // Target for Menu tab: current cafe or default to Koramangala
-  const menuHref = activeCafe ? `/cafe/${activeCafe.slug}` : '/cafe/saga-koramangala'
+  // Target for Menu tab: current cafe or default to Meesaavi Cafe (Sagwara)
+  const menuHref = activeCafe ? `/cafe/${activeCafe.slug}` : '/cafe/meesaavi-cafe'
 
   // Target for Profile tab
   const profileHref = user

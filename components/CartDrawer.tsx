@@ -26,6 +26,7 @@ import {
   Sparkles,
 } from 'lucide-react'
 import { useCart } from '@/lib/context/CartContext'
+import { useAuth } from '@/lib/context/AuthContext'
 import { createNewOrder } from '@/lib/services/orderService'
 import { SAGA_PAYMENT_CONFIG, createUpiPaymentIntent } from '@/lib/config/paymentConfig'
 import { getStoredCoupons, recordCouponUsage } from '@/lib/services/promoService'
@@ -35,6 +36,7 @@ import AddressModal from '@/components/AddressModal'
 
 export default function CartDrawer() {
   const router = useRouter()
+  const { user } = useAuth()
   const {
     items,
     updateQuantity,
@@ -138,8 +140,8 @@ export default function CartDrawer() {
         coupon_code: appliedCoupon ? appliedCoupon.code : undefined,
         discount_amount_inr: discountAmount > 0 ? discountAmount : undefined,
         delivery_address: {
-          recipient_name: activeAddress.recipient_name,
-          phone: activeAddress.phone,
+          recipient_name: user?.full_name || activeAddress.recipient_name,
+          phone: user?.phone || activeAddress.phone,
           street: activeAddress.area_street,
           building: `${activeAddress.flat_house_no}, ${activeAddress.building_name}`,
           landmark: activeAddress.landmark,

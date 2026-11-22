@@ -133,47 +133,49 @@ export default function LiveDeliveryMap({
         <svg
           className="absolute inset-0 w-full h-full"
           xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 100 100"
+          preserveAspectRatio="none"
         >
           <defs>
             <pattern
               id="grid"
-              width="36"
-              height="36"
+              width="10"
+              height="10"
               patternUnits="userSpaceOnUse"
             >
               <path
-                d="M 36 0 L 0 0 0 36"
+                d="M 10 0 L 0 0 0 10"
                 fill="none"
                 stroke={mapMode === 'satellite' ? '#1E293B' : '#E2E8F0'}
-                strokeWidth="1"
+                strokeWidth="0.5"
               />
             </pattern>
             {/* Emerald Gradient for Route */}
-            <linearGradient id="routeGradient" x1="0%" y1="100%" x2="100%" y2="0%">
+            <linearGradient id="routeGradient" x1="0" y1="1" x2="1" y2="0">
               <stop offset="0%" stopColor="#10B981" />
               <stop offset="100%" stopColor="#059669" />
             </linearGradient>
           </defs>
 
           {/* Grid Background */}
-          <rect width="100%" height="100%" fill="url(#grid)" />
+          <rect width="100" height="100" fill="url(#grid)" />
 
           {/* Simulated Urban Road Network */}
-          <line x1="0" y1="80%" x2="100%" y2="80%" stroke="#CBD5E1" strokeWidth="8" />
-          <line x1="15%" y1="0" x2="15%" y2="100%" stroke="#CBD5E1" strokeWidth="6" />
-          <line x1="48%" y1="0" x2="48%" y2="100%" stroke="#CBD5E1" strokeWidth="6" />
-          <line x1="86%" y1="0" x2="86%" y2="100%" stroke="#CBD5E1" strokeWidth="6" />
-          <line x1="0" y1="35%" x2="100%" y2="35%" stroke="#CBD5E1" strokeWidth="5" />
+          <line x1="0" y1="80" x2="100" y2="80" stroke="#CBD5E1" strokeWidth="2.5" />
+          <line x1="15" y1="0" x2="15" y2="100" stroke="#CBD5E1" strokeWidth="2" />
+          <line x1="48" y1="0" x2="48" y2="100" stroke="#CBD5E1" strokeWidth="2" />
+          <line x1="86" y1="0" x2="86" y2="100" stroke="#CBD5E1" strokeWidth="2" />
+          <line x1="0" y1="35" x2="100" y2="35" stroke="#CBD5E1" strokeWidth="1.8" />
 
           {/* Live Delivery Route Polyline */}
           <polyline
-            points={waypoints.map((w) => `${w.x}%,${w.y}%`).join(' ')}
+            points={waypoints.map((w) => `${w.x},${w.y}`).join(' ')}
             fill="none"
             stroke="url(#routeGradient)"
-            strokeWidth="5"
+            strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
-            strokeDasharray="8 4"
+            strokeDasharray="3 1.5"
             className="animate-pulse"
           />
         </svg>
