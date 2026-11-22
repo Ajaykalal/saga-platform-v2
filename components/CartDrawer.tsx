@@ -2,7 +2,6 @@
 
 import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import Image from 'next/image'
 import {
   X,
   Plus,
@@ -512,12 +511,11 @@ export default function CartDrawer() {
 
                     {showQrStandee && (
                       <div className="mt-2.5 p-3 bg-white rounded-xl border border-emerald-200 text-center space-y-2">
-                        <div className="relative w-48 h-64 mx-auto rounded-lg overflow-hidden border border-slate-200 shadow-sm">
-                          <Image
+                        <div className="relative w-48 h-64 mx-auto rounded-lg overflow-hidden border border-slate-200 shadow-sm flex items-center justify-center bg-white">
+                          <img
                             src={SAGA_PAYMENT_CONFIG.qrImageUrl}
                             alt="Paytm UPI Standee QR - Ajay Kalal"
-                            fill
-                            className="object-contain"
+                            className="w-full h-full object-contain"
                           />
                         </div>
                         <p className="text-[11px] text-slate-600">
