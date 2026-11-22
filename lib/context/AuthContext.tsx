@@ -93,11 +93,10 @@ interface UpsertableTable {
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter()
   const [user, setUser] = useState<DemoUser | null>(() => {
-    if (typeof window === 'undefined') return null
+    if (typeof window === 'undefined') return DEMO_USERS.customer
     try {
       const stored = localStorage.getItem(AUTH_STORAGE_KEY)
       if (stored) return JSON.parse(stored)
-      // Default to guest/customer for initial visit
       return DEMO_USERS.customer
     } catch {
       return DEMO_USERS.customer
