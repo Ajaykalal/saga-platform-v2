@@ -10,6 +10,11 @@ import {
   SAGA_ADDRESS_EVENT,
   DeliveryCalculation,
 } from '@/lib/services/addressService'
+import {
+  getDynamicConfig,
+  SAGA_CONFIG_EVENT,
+  type DynamicPlatformConfig,
+} from '@/lib/services/configService'
 
 export interface CartItem {
   id: string
@@ -81,6 +86,21 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const [isCartOpen, setIsCartOpen] = useState<boolean>(false)
   const [activeAddress, setActiveAddressState] = useState<UserAddress>(() => getActiveAddress())
+  const [platformConfig, setPlatformConfig] = useState<DynamicPlatformConfig>(() => getDynamicConfig())
+
+  // Dynamic configuration listener
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const handleConfigEvent = () => {
+      setPlatformConfig(getDynamicConfig())
+    }
+    window.addEventListener(SAGA_CONFIG_EVENT, handleConfigEvent)
+    window.addEventListener('storage', handleConfigEvent)
+    return () => {
+      window.removeEventListener(SAGA_CONFIG_EVENT, handleConfigEvent)
+      window.removeEventListener('storage', handleConfigEvent)
+    }
+  }, [])
 
   // Refresh active address on mount & storage/custom events
   const refreshAddress = useCallback(() => {
@@ -151,23 +171,23 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   }, [deliveryInfo.fee, items.length])
 
   const platformFee = useMemo(() => {
-    return items.length > 0 ? 5 : 0
-  }, [items.length])
+    return items.length > 0 ? (platformConfig.platformFeeInr || 5) : 0
+  }, [items.length, platformConfig.platformFeeInr])
 
   const grandTotal = useMemo(() => {
     if (items.length === 0) return 0
     return subtotal + deliveryFee + platformFee
   }, [subtotal, deliveryFee, platformFee, items.length])
 
-  // Minimum Order Value Rules
-  const minOrderValue = MIN_ORDER_VALUE_INR
+  // Minimum Order Value Rules (Dynamic from Admin Configuration)
+  const minOrderValue = platformConfig.minOrderAmountInr || MIN_ORDER_VALUE_INR
   const isBelowMinimumOrder = useMemo(() => {
-    return subtotal > 0 && subtotal < MIN_ORDER_VALUE_INR
-  }, [subtotal])
+    return subtotal > 0 && subtotal < minOrderValue
+  }, [subtotal, minOrderValue])
 
   const amountNeededForMinimum = useMemo(() => {
-    return Math.max(0, MIN_ORDER_VALUE_INR - subtotal)
-  }, [subtotal])
+    return Math.max(0, minOrderValue - subtotal)
+  }, [subtotal, minOrderValue])
 
   const addItem = (item: MenuItem, cafe: { id: string; name: string; slug: string }) => {
     setItems((prev) => {

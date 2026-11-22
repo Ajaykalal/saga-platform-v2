@@ -16,6 +16,11 @@ import {
 import { SEED_CAFES, SEED_MENU_ITEMS, CATEGORIES } from '@/lib/data/mockData'
 import { useCart } from '@/lib/context/CartContext'
 import { getStoredOrders, SAGA_ORDERS_EVENT } from '@/lib/services/orderService'
+import {
+  getDynamicConfig,
+  SAGA_CONFIG_EVENT,
+  type DynamicPlatformConfig,
+} from '@/lib/services/configService'
 import type { MenuItem, Order } from '@/lib/supabase/types'
 
 export default function Home() {
@@ -23,6 +28,17 @@ export default function Home() {
   const [selectedCategory, setSelectedCategory] = useState('All')
   const { addItem, getItemQuantity, updateQuantity } = useCart()
   const [activeOrder, setActiveOrder] = useState<Order | null>(null)
+  const [platformConfig, setPlatformConfig] = useState<DynamicPlatformConfig>(() => getDynamicConfig())
+
+  useEffect(() => {
+    const handleConfig = () => setPlatformConfig(getDynamicConfig())
+    window.addEventListener(SAGA_CONFIG_EVENT, handleConfig)
+    window.addEventListener('storage', handleConfig)
+    return () => {
+      window.removeEventListener(SAGA_CONFIG_EVENT, handleConfig)
+      window.removeEventListener('storage', handleConfig)
+    }
+  }, [])
 
   useEffect(() => {
     const checkActiveOrders = () => {
@@ -117,6 +133,31 @@ export default function Home() {
               <span>Track Live</span>
               <ChevronRight className="w-4 h-4" />
             </Link>
+          </div>
+        )}
+
+        {/* Dynamic Admin Announcement Banner */}
+        {platformConfig.announcementBanner?.enabled && (
+          <div
+            className={`p-3.5 sm:p-4 rounded-2xl flex items-center justify-between gap-3 shadow-xs border transition-all animate-fadeIn ${
+              platformConfig.announcementBanner.type === 'alert'
+                ? 'bg-rose-50 text-rose-900 border-rose-200'
+                : platformConfig.announcementBanner.type === 'warning'
+                ? 'bg-amber-50 text-amber-900 border-amber-200'
+                : platformConfig.announcementBanner.type === 'celebration'
+                ? 'bg-emerald-50 text-emerald-900 border-emerald-200'
+                : 'bg-blue-50 text-blue-900 border-blue-200'
+            }`}
+          >
+            <div className="flex items-center gap-2.5 min-w-0">
+              <Sparkles className="w-5 h-5 shrink-0 text-current animate-pulse" />
+              <span className="text-xs sm:text-sm font-bold truncate">
+                {platformConfig.announcementBanner.message}
+              </span>
+            </div>
+            <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-black/5 shrink-0">
+              Live Update
+            </span>
           </div>
         )}
 

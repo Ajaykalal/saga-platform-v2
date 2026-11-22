@@ -1,5 +1,6 @@
 import type { Order, OrderStatus, Wallet, WalletTransaction } from '@/lib/supabase/types'
 import { createBrowserClient, isSupabaseConfigured } from '@/lib/supabase/client'
+import { getDynamicConfig } from '@/lib/services/configService'
 import {
   SEED_ORDERS,
   SEED_CAFES,
@@ -442,7 +443,8 @@ function handleAutomatedSettlementOnDelivered(order: Order) {
 
   // Find or create Rider Wallet (assign to default student rider if none assigned)
   const riderId = order.rider_id || '66666666-6666-4666-a666-666666666666'
-  const riderPayoutInr = 55.0 // ₹35 base + ₹20 student campus incentive
+  const config = getDynamicConfig()
+  const riderPayoutInr = config.riderPayoutPerOrderInr || 55.0 // Dynamic student campus courier fee
   const riderWalletIndex = wallets.findIndex((w) => w.user_id === riderId)
   if (riderWalletIndex !== -1) {
     const rw = wallets[riderWalletIndex]

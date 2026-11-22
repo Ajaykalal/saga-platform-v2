@@ -2,12 +2,13 @@
 
 import type { UserAddress } from '@/lib/supabase/types'
 import { createBrowserClient, isSupabaseConfigured } from '@/lib/supabase/client'
+import { getDynamicConfig } from '@/lib/services/configService'
 
 export const ADDRESS_STORAGE_KEY = 'saga_user_addresses_v1'
 export const ACTIVE_ADDRESS_KEY = 'saga_active_address_id_v1'
 export const SAGA_ADDRESS_EVENT = 'saga:address-updated'
 
-// Platform Delivery Fee & Minimum Order Configuration
+// Platform Delivery Fee & Minimum Order Configuration Fallbacks
 export const MIN_ORDER_VALUE_INR = 200
 export const BASE_DISTANCE_KM = 5
 export const BASE_DELIVERY_FEE_INR = 25
@@ -24,45 +25,50 @@ export interface DeliveryCalculation {
 }
 
 /**
- * Calculates delivery fee based on exact platform rule:
- * - Up to 5 km: Fixed ₹25 delivery charge
- * - Above 5 km up to 10 km: Fixed ₹25 (first 5 km) + ₹6 per additional km
- * - Beyond 10 km: Outside delivery range
+ * Calculates delivery fee based on dynamic platform rules:
+ * - Up to baseDeliveryRadiusKm: Fixed baseDeliveryFeeInr
+ * - Above baseDeliveryRadiusKm up to maxDeliveryRadiusKm: baseDeliveryFeeInr + extraFeePerKmInr per additional km
+ * - Beyond maxDeliveryRadiusKm: Outside delivery range
  */
 export function calculateDeliveryFee(distanceKm: number = 2.8): DeliveryCalculation {
+  const config = getDynamicConfig()
   const dist = Math.max(0.1, Math.round(distanceKm * 10) / 10)
+  const maxRange = config.maxDeliveryRadiusKm || MAX_DELIVERY_RANGE_KM
+  const baseKm = config.baseDeliveryRadiusKm || BASE_DISTANCE_KM
+  const baseFee = config.baseDeliveryFeeInr || BASE_DELIVERY_FEE_INR
+  const extraRate = config.extraFeePerKmInr || EXTRA_KM_RATE_INR
 
-  if (dist > MAX_DELIVERY_RANGE_KM) {
+  if (dist > maxRange) {
     return {
       fee: 0,
       isDeliverable: false,
       distanceKm: dist,
-      breakdown: `Location is ${dist.toFixed(1)} km away. Maximum delivery range is 10 km.`,
-      extraKm: Math.max(0, dist - BASE_DISTANCE_KM),
+      breakdown: `Location is ${dist.toFixed(1)} km away. Maximum delivery range is ${maxRange} km.`,
+      extraKm: Math.max(0, dist - baseKm),
       extraFee: 0,
     }
   }
 
-  if (dist <= BASE_DISTANCE_KM) {
+  if (dist <= baseKm) {
     return {
-      fee: BASE_DELIVERY_FEE_INR,
+      fee: baseFee,
       isDeliverable: true,
       distanceKm: dist,
-      breakdown: `Fixed ₹${BASE_DELIVERY_FEE_INR} under 5 km (${dist.toFixed(1)} km)`,
+      breakdown: `Fixed ₹${baseFee} under ${baseKm} km (${dist.toFixed(1)} km)`,
       extraKm: 0,
       extraFee: 0,
     }
   }
 
-  const extraKm = Math.round((dist - BASE_DISTANCE_KM) * 10) / 10
-  const extraFee = Math.round(extraKm * EXTRA_KM_RATE_INR)
-  const totalFee = BASE_DELIVERY_FEE_INR + extraFee
+  const extraKm = Math.round((dist - baseKm) * 10) / 10
+  const extraFee = Math.round(extraKm * extraRate)
+  const totalFee = baseFee + extraFee
 
   return {
     fee: totalFee,
     isDeliverable: true,
     distanceKm: dist,
-    breakdown: `₹${BASE_DELIVERY_FEE_INR} base (first 5 km) + ₹${extraFee} (${extraKm.toFixed(1)} km × ₹6/km)`,
+    breakdown: `₹${baseFee} base (first ${baseKm} km) + ₹${extraFee} (${extraKm.toFixed(1)} km × ₹${extraRate}/km)`,
     extraKm,
     extraFee,
   }

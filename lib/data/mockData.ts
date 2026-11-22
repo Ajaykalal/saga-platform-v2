@@ -644,3 +644,97 @@ export const CATEGORIES = [
   'Desserts',
   'Combos',
 ]
+
+export interface StudentRiderInfo {
+  id: string
+  name: string
+  phone: string
+  college: string
+  vehicleType: string
+  status: 'on_delivery' | 'on_duty' | 'offline'
+  currentOrderId?: string | null
+  deliveriesToday: number
+  lifetimeDeliveries: number
+  walletBalanceInr: number
+  cashInHandInr: number
+  rating: number
+  joinedDate: string
+}
+
+export const SEED_RIDERS: StudentRiderInfo[] = [
+  {
+    id: '66666666-6666-4666-a666-666666666666',
+    name: 'Vikram Singh',
+    phone: '+919770055667',
+    college: 'RV College of Engineering (B.Tech 3rd Yr)',
+    vehicleType: 'Electric Bicycle',
+    status: 'on_delivery',
+    currentOrderId: 'e2222222-2222-4222-c222-222222222222',
+    deliveriesToday: 9,
+    lifetimeDeliveries: 342,
+    walletBalanceInr: 480.0,
+    cashInHandInr: 350.0,
+    rating: 4.95,
+    joinedDate: 'Oct 2025',
+  },
+  {
+    id: 'rider-2',
+    name: 'Priya Sharma',
+    phone: '+919811223344',
+    college: 'BMS College of Engineering (MBA 1st Yr)',
+    vehicleType: 'Honda Activa EV',
+    status: 'on_duty',
+    currentOrderId: null,
+    deliveriesToday: 7,
+    lifetimeDeliveries: 218,
+    walletBalanceInr: 385.0,
+    cashInHandInr: 0,
+    rating: 4.9,
+    joinedDate: 'Nov 2025',
+  },
+  {
+    id: 'rider-3',
+    name: 'Rahul Verma',
+    phone: '+919733445566',
+    college: 'Christ University (BBA 2nd Yr)',
+    vehicleType: 'Geared Bicycle',
+    status: 'on_duty',
+    currentOrderId: null,
+    deliveriesToday: 5,
+    lifetimeDeliveries: 164,
+    walletBalanceInr: 275.0,
+    cashInHandInr: 220.0,
+    rating: 4.88,
+    joinedDate: 'Jan 2026',
+  },
+  {
+    id: 'rider-4',
+    name: 'Ananya Rao',
+    phone: '+919844556677',
+    college: 'PES University (B.Des 3rd Yr)',
+    vehicleType: 'Ather 450X',
+    status: 'on_duty',
+    currentOrderId: null,
+    deliveriesToday: 6,
+    lifetimeDeliveries: 189,
+    walletBalanceInr: 330.0,
+    cashInHandInr: 0,
+    rating: 4.92,
+    joinedDate: 'Dec 2025',
+  },
+  {
+    id: 'rider-5',
+    name: 'Mohammed Zayd',
+    phone: '+919766778899',
+    college: "St. Joseph's University (B.Com Final Yr)",
+    vehicleType: 'Hero Splendor',
+    status: 'offline',
+    currentOrderId: null,
+    deliveriesToday: 0,
+    lifetimeDeliveries: 412,
+    walletBalanceInr: 720.0,
+    cashInHandInr: 0,
+    rating: 4.97,
+    joinedDate: 'Aug 2025',
+  },
+]
