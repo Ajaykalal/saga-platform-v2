@@ -79,8 +79,22 @@ import type { Cafe, Wallet, KycStatus, Order } from '@/lib/supabase/types'
 export default function AdminPage() {
   const { user } = useAuth()
 
-  // Active navigation tab (default to clean overview: 'cafes')
-  const [activeTab, setActiveTab] = useState<'cafes' | 'orders' | 'riders' | 'dynamic_settings' | 'escrow' | 'kyc' | 'commission'>('cafes')
+  // Active navigation tab with persistence
+  const [activeTab, setActiveTab] = useState<'cafes' | 'orders' | 'riders' | 'dynamic_settings' | 'escrow' | 'kyc' | 'commission'>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('foodlo_admin_active_tab')
+      if (saved && ['cafes', 'orders', 'riders', 'dynamic_settings', 'escrow', 'kyc', 'commission'].includes(saved)) {
+        return saved as 'cafes' | 'orders' | 'riders' | 'dynamic_settings' | 'escrow' | 'kyc' | 'commission'
+      }
+    }
+    return 'cafes'
+  })
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('foodlo_admin_active_tab', activeTab)
+    }
+  }, [activeTab])
 
   // Cafes State (allows open/closed toggling, approval/rejection and commission rate updates)
   const [cafes, setCafes] = useState<Cafe[]>(() => {

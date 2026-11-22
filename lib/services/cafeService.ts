@@ -2,6 +2,7 @@
 
 import { Cafe, MenuItem } from '@/lib/supabase/types'
 import { SEED_CAFES, SEED_MENU_ITEMS } from '@/lib/data/mockData'
+import { createBrowserClient, isSupabaseConfigured } from '@/lib/supabase/client'
 
 export const FOODLO_CAFES_STORAGE_KEY = 'foodlo_cafes_v2'
 export const FOODLO_MENU_STORAGE_KEY = 'foodlo_menu_items_v2'
@@ -50,6 +51,30 @@ export function getCafeBySlug(slug: string): Cafe | undefined {
   return cafes.find((c) => c.slug === slug)
 }
 
+export async function syncCafeStatusToSupabase(cafeId: string, isOpen: boolean): Promise<void> {
+  if (typeof window === 'undefined' || !isSupabaseConfigured()) return
+  try {
+    const supabase = createBrowserClient()
+    await (supabase.from('cafes') as unknown as { update: (vals: Record<string, unknown>) => { eq: (col: string, val: string) => Promise<unknown> } })
+      .update({ is_open: isOpen, updated_at: new Date().toISOString() })
+      .eq('id', cafeId)
+  } catch {
+    // Graceful fallback
+  }
+}
+
+export async function syncMenuItemAvailabilityToSupabase(itemId: string, isAvailable: boolean): Promise<void> {
+  if (typeof window === 'undefined' || !isSupabaseConfigured()) return
+  try {
+    const supabase = createBrowserClient()
+    await (supabase.from('menu_items') as unknown as { update: (vals: Record<string, unknown>) => { eq: (col: string, val: string) => Promise<unknown> } })
+      .update({ is_available: isAvailable, updated_at: new Date().toISOString() })
+      .eq('id', itemId)
+  } catch {
+    // Graceful fallback
+  }
+}
+
 /**
  * Toggle or update cafe open/closed status (instant broadcast across customer & merchant tabs)
  */
@@ -73,6 +98,7 @@ export function updateCafeStatus(cafeId: string, isOpen: boolean): Cafe {
         detail: { cafeId, isOpen },
       })
     )
+    syncCafeStatusToSupabase(cafeId, isOpen)
   } catch (err) {
     console.error('[cafeService] Failed to save cafe status:', err)
   }
@@ -172,6 +198,7 @@ export function updateMenuItemAvailability(itemId: string, isAvailable: boolean)
         detail: { itemId, isAvailable },
       })
     )
+    syncMenuItemAvailabilityToSupabase(itemId, isAvailable)
   } catch (err) {
     console.error('[cafeService] Failed to save menu item availability:', err)
   }

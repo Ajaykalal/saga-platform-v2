@@ -56,11 +56,37 @@ import type { Order, Wallet as WalletType } from '@/lib/supabase/types'
 export default function RiderPage() {
   const { user } = useAuth()
 
-  // Online / Offline Availability Toggle
-  const [isOnline, setIsOnline] = useState<boolean>(true)
+  // Online / Offline Availability Toggle with persistence
+  const [isOnline, setIsOnline] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('foodlo_rider_is_online')
+      if (saved !== null) return saved === 'true'
+    }
+    return true
+  })
 
-  // Navigation tab: 'feed' (Ready for pickup), 'active' (In-transit trip), 'wallet' (Earnings)
-  const [activeTab, setActiveTab] = useState<'feed' | 'active' | 'wallet'>('feed')
+  // Navigation tab with persistence: 'feed', 'active', 'wallet'
+  const [activeTab, setActiveTab] = useState<'feed' | 'active' | 'wallet'>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('foodlo_rider_active_tab')
+      if (saved && ['feed', 'active', 'wallet'].includes(saved)) {
+        return saved as 'feed' | 'active' | 'wallet'
+      }
+    }
+    return 'feed'
+  })
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('foodlo_rider_is_online', String(isOnline))
+    }
+  }, [isOnline])
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('foodlo_rider_active_tab', activeTab)
+    }
+  }, [activeTab])
 
   // Orders State from centralized service
   const [orders, setOrders] = useState<Order[]>(() => getStoredOrders())

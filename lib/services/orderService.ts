@@ -1,6 +1,14 @@
-import type { Order, OrderStatus, Wallet, WalletTransaction } from '@/lib/supabase/types'
+import type { Order, OrderStatus, Wallet, WalletTransaction, Cafe, MenuItem } from '@/lib/supabase/types'
 import { createBrowserClient, isSupabaseConfigured } from '@/lib/supabase/client'
 import { getDynamicConfig } from '@/lib/services/configService'
+import {
+  FOODLO_CAFES_STORAGE_KEY,
+  FOODLO_MENU_STORAGE_KEY,
+  FOODLO_CAFE_EVENT,
+  FOODLO_MENU_EVENT,
+  getStoredCafes,
+  getStoredMenuItems,
+} from '@/lib/services/cafeService'
 import {
   SEED_ORDERS,
   SEED_CAFES,
@@ -57,6 +65,26 @@ export async function initSupabaseRealtimeSync(): Promise<void> {
       // Fallback
     }
 
+    try {
+      const { data: remoteCafes } = await supabase.from('cafes').select('*')
+      if (remoteCafes && remoteCafes.length > 0) {
+        localStorage.setItem(FOODLO_CAFES_STORAGE_KEY, JSON.stringify(remoteCafes))
+        window.dispatchEvent(new CustomEvent(FOODLO_CAFE_EVENT))
+      }
+    } catch {
+      // Fallback
+    }
+
+    try {
+      const { data: remoteMenu } = await supabase.from('menu_items').select('*')
+      if (remoteMenu && remoteMenu.length > 0) {
+        localStorage.setItem(FOODLO_MENU_STORAGE_KEY, JSON.stringify(remoteMenu))
+        window.dispatchEvent(new CustomEvent(FOODLO_MENU_EVENT))
+      }
+    } catch {
+      // Fallback
+    }
+
     // 2. Realtime WebSocket subscription
     supabase
       .channel('saga-realtime-global')
@@ -98,6 +126,44 @@ export async function initSupabaseRealtimeSync(): Promise<void> {
             )
             localStorage.setItem(WALLETS_STORAGE_KEY, JSON.stringify(updated))
             window.dispatchEvent(new CustomEvent(SAGA_ORDERS_EVENT))
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'cafes' },
+        (payload) => {
+          if (payload.eventType === 'UPDATE' || payload.eventType === 'INSERT') {
+            const updatedCafe = payload.new as Cafe
+            const current = getStoredCafes()
+            const updated = current.map((c) =>
+              c.id === updatedCafe.id ? { ...c, ...updatedCafe } : c
+            )
+            localStorage.setItem(FOODLO_CAFES_STORAGE_KEY, JSON.stringify(updated))
+            window.dispatchEvent(
+              new CustomEvent(FOODLO_CAFE_EVENT, {
+                detail: { cafeId: updatedCafe.id, isOpen: updatedCafe.is_open },
+              })
+            )
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'menu_items' },
+        (payload) => {
+          if (payload.eventType === 'UPDATE' || payload.eventType === 'INSERT') {
+            const updatedItem = payload.new as MenuItem
+            const current = getStoredMenuItems()
+            const updated = current.map((m) =>
+              m.id === updatedItem.id ? { ...m, ...updatedItem } : m
+            )
+            localStorage.setItem(FOODLO_MENU_STORAGE_KEY, JSON.stringify(updated))
+            window.dispatchEvent(
+              new CustomEvent(FOODLO_MENU_EVENT, {
+                detail: { itemId: updatedItem.id, isAvailable: updatedItem.is_available },
+              })
+            )
           }
         }
       )

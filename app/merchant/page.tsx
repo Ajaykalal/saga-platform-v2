@@ -70,10 +70,15 @@ import {
 import type { Cafe, MenuItem, Order, OrderStatus, Wallet, WalletTransaction } from '@/lib/supabase/types'
 
 export default function MerchantPage() {
-  // Target cafe: default to Koramangala / Meesaavi (from stored cafes)
+  // Target cafe: default to previously chosen cafe or Meesaavi
   const [cafe, setCafe] = useState<Cafe>(() => {
     if (typeof window !== 'undefined') {
       const stored = getStoredCafes()
+      const savedCafeId = localStorage.getItem('foodlo_merchant_active_cafe_id')
+      if (savedCafeId) {
+        const found = stored.find((c) => c.id === savedCafeId)
+        if (found) return found
+      }
       return stored.find((c) => c.slug === 'meesaavi-cafe') || stored[0] || SEED_CAFES[0]
     }
     return SEED_CAFES.find((c) => c.slug === 'meesaavi-cafe') || SEED_CAFES[0]
@@ -82,8 +87,22 @@ export default function MerchantPage() {
   // Filter Scope: 'this_cafe' (default cafe isolation) or 'all'
   const [filterScope, setFilterScope] = useState<'this_cafe' | 'all'>('this_cafe')
 
-  // Active Tab
-  const [activeTab, setActiveTab] = useState<'pos' | 'kyc' | 'menu' | 'wallet' | 'promos'>('pos')
+  // Active Tab with persistence
+  const [activeTab, setActiveTab] = useState<'pos' | 'kyc' | 'menu' | 'wallet' | 'promos'>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('foodlo_merchant_active_tab')
+      if (saved && ['pos', 'kyc', 'menu', 'wallet', 'promos'].includes(saved)) {
+        return saved as 'pos' | 'kyc' | 'menu' | 'wallet' | 'promos'
+      }
+    }
+    return 'pos'
+  })
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('foodlo_merchant_active_tab', activeTab)
+    }
+  }, [activeTab])
 
   // Dynamic config for Pro Feature permissions
   const [dynamicConfig, setDynamicConfig] = useState<DynamicPlatformConfig>(() => getDynamicConfig())
@@ -192,6 +211,9 @@ export default function MerchantPage() {
     setIsOpen(live.is_open)
     setMenuItems(getStoredMenuItems(live.id))
     setBankDetails(getCafeBankDetails(live.id))
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('foodlo_merchant_active_cafe_id', live.id)
+    }
     showToast(`Switched active kitchen to ${live.name}`)
   }
 
