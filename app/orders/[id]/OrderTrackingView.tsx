@@ -18,8 +18,13 @@ import {
   MessageCircle,
   ExternalLink,
   ShieldCheck,
+  Star,
+  Heart,
+  Send,
+  Sparkles,
 } from 'lucide-react'
 import { getOrderById, SAGA_ORDERS_EVENT } from '@/lib/services/orderService'
+import { getOrderRating, submitOrderRating, type OrderRating } from '@/lib/services/ratingService'
 import { SEED_CAFES } from '@/lib/data/mockData'
 import { createClient, isSupabaseConfigured } from '@/lib/supabase/client'
 import { sounds } from '@/lib/utils/soundEffects'
@@ -47,6 +52,19 @@ export default function OrderTrackingView({ orderId }: OrderTrackingViewProps) {
   })
   const [isLiveConnected, setIsLiveConnected] = useState(false)
   const prevStatusRef = React.useRef<OrderStatus | null>(order?.status || null)
+
+  // Customer Rating & Review State
+  const [ratingData, setRatingData] = useState<OrderRating | null>(() => {
+    if (typeof window !== 'undefined') return getOrderRating(orderId)
+    return null
+  })
+  const [foodRating, setFoodRating] = useState<number>(5)
+  const [riderRating, setRiderRating] = useState<number>(5)
+  const [selectedTip, setSelectedTip] = useState<number>(0)
+  const [customTipInput, setCustomTipInput] = useState<string>('')
+  const [isCustomTip, setIsCustomTip] = useState<boolean>(false)
+  const [reviewNotes, setReviewNotes] = useState<string>('')
+  const [isSubmittingRating, setIsSubmittingRating] = useState<boolean>(false)
 
   // Fetch and subscribe to order updates
   useEffect(() => {
@@ -170,6 +188,33 @@ export default function OrderTrackingView({ orderId }: OrderTrackingViewProps) {
 
   const cafe = SEED_CAFES.find((c) => c.id === order.cafe_id)
 
+  const handleSubmitRating = () => {
+    if (!order) return
+    setIsSubmittingRating(true)
+    const tipAmount = isCustomTip ? Math.max(0, Number(customTipInput) || 0) : selectedTip
+
+    const submitted = submitOrderRating({
+      orderId: order.id,
+      orderNumber: order.order_number,
+      cafeId: order.cafe_id,
+      cafeName: cafe?.name || 'Saga Cafe',
+      riderId: order.rider_id || '66666666-6666-4666-a666-666666666666',
+      riderName: 'Vikram Singh',
+      foodRating,
+      riderRating,
+      riderTipInr: tipAmount,
+      reviewText: reviewNotes,
+    })
+
+    setRatingData(submitted)
+    setIsSubmittingRating(false)
+    try {
+      sounds.playSuccessCelebration()
+    } catch {
+      // ignore
+    }
+  }
+
   // Status index for timeline stepper
   const statusSteps: { key: OrderStatus; label: string; subtext: string; icon: React.ElementType }[] = [
     {
@@ -287,6 +332,261 @@ export default function OrderTrackingView({ orderId }: OrderTrackingViewProps) {
             </div>
           </div>
         </div>
+
+        {/* CUSTOMER ORDER RATING & REVIEW CARD (When Delivered) */}
+        {order.status === 'delivered' && (
+          ratingData ? (
+            <div className="bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-300 rounded-3xl p-5 shadow-sm space-y-3 animate-fadeIn">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-full bg-emerald-600 text-white flex items-center justify-center">
+                    <Sparkles className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-800 block">
+                      Feedback Submitted
+                    </span>
+                    <h3 className="text-sm font-black text-emerald-950">
+                      Thank you for rating your SAGA meal!
+                    </h3>
+                  </div>
+                </div>
+                <span className="text-[10px] font-bold bg-white text-emerald-800 border border-emerald-300 px-2.5 py-1 rounded-full shadow-2xs">
+                  Verified Review
+                </span>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2.5 pt-2 border-t border-emerald-200/60">
+                <div className="bg-white/80 rounded-xl p-3 border border-emerald-100">
+                  <span className="text-[10px] font-bold text-slate-500 uppercase block">Food Taste & Freshness</span>
+                  <div className="flex items-center gap-1 mt-1">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <Star
+                        key={star}
+                        className={`w-3.5 h-3.5 ${
+                          star <= ratingData.foodRating
+                            ? 'text-amber-400 fill-amber-400'
+                            : 'text-slate-200'
+                        }`}
+                      />
+                    ))}
+                    <span className="text-xs font-black text-slate-800 ml-1">
+                      {ratingData.foodRating}.0
+                    </span>
+                  </div>
+                </div>
+
+                <div className="bg-white/80 rounded-xl p-3 border border-emerald-100">
+                  <span className="text-[10px] font-bold text-slate-500 uppercase block">Student Courier Experience</span>
+                  <div className="flex items-center gap-1 mt-1">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <Star
+                        key={star}
+                        className={`w-3.5 h-3.5 ${
+                          star <= ratingData.riderRating
+                            ? 'text-amber-400 fill-amber-400'
+                            : 'text-slate-200'
+                        }`}
+                      />
+                    ))}
+                    <span className="text-xs font-black text-slate-800 ml-1">
+                      {ratingData.riderRating}.0
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {ratingData.riderTipInr > 0 && (
+                <div className="bg-emerald-100/70 border border-emerald-300 rounded-xl p-2.5 flex items-center justify-between text-xs text-emerald-900">
+                  <span className="flex items-center gap-1.5 font-bold">
+                    <Heart className="w-3.5 h-3.5 text-rose-500 fill-rose-500" />
+                    <span>₹{ratingData.riderTipInr} Courier Gratuity Sent</span>
+                  </span>
+                  <span className="text-[10px] font-bold bg-white px-2 py-0.5 rounded text-emerald-800">
+                    Credited to Vikram Singh
+                  </span>
+                </div>
+              )}
+
+              {ratingData.reviewText && (
+                <p className="text-xs italic text-emerald-900 bg-white/60 p-2.5 rounded-xl border border-emerald-100">
+                  &ldquo;{ratingData.reviewText}&rdquo;
+                </p>
+              )}
+            </div>
+          ) : (
+            <div className="bg-white border-2 border-emerald-500/30 rounded-3xl p-5 shadow-md space-y-4 animate-fadeIn">
+              <div className="flex items-center justify-between">
+                <div>
+                  <span className="text-[10px] font-black uppercase tracking-wider text-emerald-700 block">
+                    Delivered • Rate Your Experience
+                  </span>
+                  <h3 className="text-base font-black text-slate-900">
+                    How was your order today?
+                  </h3>
+                </div>
+                <span className="w-8 h-8 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                  <Star className="w-4 h-4 fill-emerald-600" />
+                </span>
+              </div>
+
+              {/* 1. Food Taste & Packaging Rating */}
+              <div className="bg-slate-50 rounded-2xl p-3.5 space-y-2 border border-slate-200">
+                <div className="flex justify-between items-center">
+                  <span className="text-xs font-extrabold text-slate-800">
+                    1. Food Taste & Freshness ({cafe?.name || 'Saga Cafe'})
+                  </span>
+                  <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded">
+                    {foodRating === 5
+                      ? 'Exceptional & Hot! 🌟'
+                      : foodRating === 4
+                      ? 'Great Taste 👌'
+                      : foodRating === 3
+                      ? 'Good 👍'
+                      : 'Needs Improvement'}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button
+                      key={star}
+                      type="button"
+                      onClick={() => setFoodRating(star)}
+                      className="p-1 rounded-lg hover:bg-white transition-transform active:scale-110 cursor-pointer"
+                    >
+                      <Star
+                        className={`w-7 h-7 ${
+                          star <= foodRating
+                            ? 'text-amber-400 fill-amber-400 drop-shadow-xs'
+                            : 'text-slate-300 hover:text-slate-400'
+                        }`}
+                      />
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* 2. Student Courier Service */}
+              <div className="bg-slate-50 rounded-2xl p-3.5 space-y-2 border border-slate-200">
+                <div className="flex justify-between items-center">
+                  <span className="text-xs font-extrabold text-slate-800">
+                    2. Student Courier Service (Vikram Singh)
+                  </span>
+                  <span className="text-[10px] font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded">
+                    {riderRating === 5 ? 'Swift & Polite ⚡' : riderRating >= 4 ? 'Great Delivery 🛵' : 'Good Service'}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button
+                      key={star}
+                      type="button"
+                      onClick={() => setRiderRating(star)}
+                      className="p-1 rounded-lg hover:bg-white transition-transform active:scale-110 cursor-pointer"
+                    >
+                      <Star
+                        className={`w-7 h-7 ${
+                          star <= riderRating
+                            ? 'text-amber-400 fill-amber-400 drop-shadow-xs'
+                            : 'text-slate-300 hover:text-slate-400'
+                        }`}
+                      />
+                    </button>
+                  ))}
+                </div>
+
+                {/* Optional Rider Tip Gratuity */}
+                <div className="pt-2 border-t border-slate-200 space-y-1.5">
+                  <div className="flex justify-between items-center">
+                    <span className="text-[11px] font-bold text-slate-600 flex items-center gap-1">
+                      <Heart className="w-3 h-3 text-rose-500" />
+                      <span>Add Courier Tip (100% goes to Vikram)</span>
+                    </span>
+                    <span className="text-[10px] font-extrabold text-emerald-800">
+                      {isCustomTip
+                        ? `₹${customTipInput || 0}`
+                        : selectedTip > 0
+                        ? `₹${selectedTip}`
+                        : 'No Tip'}
+                    </span>
+                  </div>
+
+                  <div className="flex flex-wrap gap-1.5">
+                    {[0, 10, 20, 30, 50].map((amt) => {
+                      const isSelected = !isCustomTip && selectedTip === amt
+                      return (
+                        <button
+                          key={amt}
+                          type="button"
+                          onClick={() => {
+                            setIsCustomTip(false)
+                            setSelectedTip(amt)
+                          }}
+                          className={`px-3 py-1.5 text-xs font-bold rounded-xl border transition-all cursor-pointer ${
+                            isSelected
+                              ? 'bg-emerald-600 text-white border-emerald-600 shadow-2xs'
+                              : 'bg-white text-slate-700 border-slate-200 hover:border-slate-300'
+                          }`}
+                        >
+                          {amt === 0 ? 'No Tip' : `₹${amt}`}
+                        </button>
+                      )
+                    })}
+
+                    <button
+                      type="button"
+                      onClick={() => setIsCustomTip(true)}
+                      className={`px-3 py-1.5 text-xs font-bold rounded-xl border transition-all cursor-pointer ${
+                        isCustomTip
+                          ? 'bg-emerald-600 text-white border-emerald-600 shadow-2xs'
+                          : 'bg-white text-slate-700 border-slate-200 hover:border-slate-300'
+                      }`}
+                    >
+                      Custom
+                    </button>
+                  </div>
+
+                  {isCustomTip && (
+                    <input
+                      type="number"
+                      min="1"
+                      max="500"
+                      value={customTipInput}
+                      onChange={(e) => setCustomTipInput(e.target.value)}
+                      placeholder="Enter custom tip amount (e.g. ₹40)"
+                      className="w-full text-xs bg-white border border-slate-200 rounded-xl px-3 py-2 text-slate-800 placeholder-slate-400 focus:outline-emerald-500"
+                    />
+                  )}
+                </div>
+              </div>
+
+              {/* 3. Review Comments Input */}
+              <div className="space-y-1">
+                <label className="text-[11px] font-bold text-slate-600 block">
+                  Comments or Compliments (Optional):
+                </label>
+                <input
+                  type="text"
+                  value={reviewNotes}
+                  onChange={(e) => setReviewNotes(e.target.value)}
+                  placeholder="e.g. Pizza crust was crisp and hot! Courier arrived early."
+                  className="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-slate-800 placeholder-slate-400 focus:outline-emerald-500 focus:bg-white"
+                />
+              </div>
+
+              {/* Submit CTA */}
+              <button
+                type="button"
+                onClick={handleSubmitRating}
+                disabled={isSubmittingRating}
+                className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] text-white font-extrabold text-xs rounded-xl shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <Send className="w-3.5 h-3.5" />
+                <span>Submit Review {selectedTip > 0 || Number(customTipInput) > 0 ? '& Send Tip' : ''}</span>
+              </button>
+            </div>
+          )
+        )}
 
         {/* Free Live GPS Delivery Route Map & Google Maps Navigation */}
         <LiveDeliveryMap

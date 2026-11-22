@@ -15,6 +15,11 @@ import {
   SAGA_CONFIG_EVENT,
   type DynamicPlatformConfig,
 } from '@/lib/services/configService'
+import {
+  validateAndApplyCoupon,
+  type PromoCoupon,
+  type CouponValidationResult,
+} from '@/lib/services/promoService'
 
 export interface CartItem {
   id: string
@@ -57,6 +62,12 @@ interface CartContextType {
   minOrderValue: number
   isBelowMinimumOrder: boolean
   amountNeededForMinimum: number
+  // Promo / Coupon Engine
+  appliedCoupon: PromoCoupon | null
+  discountAmount: number
+  couponFeedback: { text: string; isError: boolean } | null
+  applyPromoCode: (code: string) => CouponValidationResult
+  removePromoCode: () => void
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined)
@@ -87,6 +98,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const [isCartOpen, setIsCartOpen] = useState<boolean>(false)
   const [activeAddress, setActiveAddressState] = useState<UserAddress>(() => getActiveAddress())
   const [platformConfig, setPlatformConfig] = useState<DynamicPlatformConfig>(() => getDynamicConfig())
+  const [appliedCoupon, setAppliedCoupon] = useState<PromoCoupon | null>(null)
+  const [couponFeedback, setCouponFeedback] = useState<{ text: string; isError: boolean } | null>(null)
 
   // Dynamic configuration listener
   useEffect(() => {
@@ -174,10 +187,25 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     return items.length > 0 ? (platformConfig.platformFeeInr || 5) : 0
   }, [items.length, platformConfig.platformFeeInr])
 
+  // Promo Discount Calculation
+  const discountAmount = useMemo(() => {
+    if (!appliedCoupon || subtotal <= 0) return 0
+    if (subtotal < appliedCoupon.minOrderAmount) {
+      return 0
+    }
+    if (appliedCoupon.discountType === 'flat') {
+      return Math.min(appliedCoupon.discountValue, subtotal)
+    }
+    // Percentage discount
+    const pct = Math.round((subtotal * appliedCoupon.discountValue) / 100)
+    const capped = appliedCoupon.maxDiscountAmount ? Math.min(pct, appliedCoupon.maxDiscountAmount) : pct
+    return Math.min(capped, subtotal)
+  }, [appliedCoupon, subtotal])
+
   const grandTotal = useMemo(() => {
     if (items.length === 0) return 0
-    return subtotal + deliveryFee + platformFee
-  }, [subtotal, deliveryFee, platformFee, items.length])
+    return Math.max(0, subtotal - discountAmount + deliveryFee + platformFee)
+  }, [subtotal, discountAmount, deliveryFee, platformFee, items.length])
 
   // Minimum Order Value Rules (Dynamic from Admin Configuration)
   const minOrderValue = platformConfig.minOrderAmountInr || MIN_ORDER_VALUE_INR
@@ -262,7 +290,28 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const clearCart = () => {
     setItems([])
     setSpecialInstructions('')
+    setAppliedCoupon(null)
+    setCouponFeedback(null)
   }
+
+  const applyPromoCode = useCallback(
+    (code: string): CouponValidationResult => {
+      const result = validateAndApplyCoupon(code, subtotal, activeCafe?.id)
+      if (result.valid && result.coupon) {
+        setAppliedCoupon(result.coupon)
+        setCouponFeedback({ text: result.message, isError: false })
+      } else {
+        setCouponFeedback({ text: result.message, isError: true })
+      }
+      return result
+    },
+    [subtotal, activeCafe?.id]
+  )
+
+  const removePromoCode = useCallback(() => {
+    setAppliedCoupon(null)
+    setCouponFeedback(null)
+  }, [])
 
   const getItemQuantity = (itemId: string) => {
     const item = items.find((i) => i.id === itemId)
@@ -301,6 +350,11 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         minOrderValue,
         isBelowMinimumOrder,
         amountNeededForMinimum,
+        appliedCoupon,
+        discountAmount,
+        couponFeedback,
+        applyPromoCode,
+        removePromoCode,
       }}
     >
       {children}

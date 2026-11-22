@@ -19,8 +19,24 @@ import {
   Building2,
   ArrowDownRight,
   Edit3,
+  Download,
+  Lock,
+  Ticket,
 } from 'lucide-react'
 import { sounds } from '@/lib/utils/soundEffects'
+import { exportDailySalesCsv } from '@/lib/services/exportService'
+import {
+  getDynamicConfig,
+  SAGA_CONFIG_EVENT,
+  type DynamicPlatformConfig,
+} from '@/lib/services/configService'
+import {
+  getStoredCoupons,
+  createCoupon,
+  toggleCoupon,
+  SAGA_PROMO_EVENT,
+  type PromoCoupon,
+} from '@/lib/services/promoService'
 import {
   SEED_CAFES,
   SEED_MENU_ITEMS,
@@ -52,7 +68,23 @@ export default function MerchantPage() {
   const [filterScope, setFilterScope] = useState<'this_cafe' | 'all'>('this_cafe')
 
   // Active Tab
-  const [activeTab, setActiveTab] = useState<'pos' | 'kyc' | 'menu' | 'wallet'>('pos')
+  const [activeTab, setActiveTab] = useState<'pos' | 'kyc' | 'menu' | 'wallet' | 'promos'>('pos')
+
+  // Dynamic config for Pro Feature permissions
+  const [dynamicConfig, setDynamicConfig] = useState<DynamicPlatformConfig>(() => getDynamicConfig())
+  const [showProFeatureModal, setShowProFeatureModal] = useState<boolean>(false)
+
+  // Store Promos & Offers State
+  const [coupons, setCoupons] = useState<PromoCoupon[]>(() => {
+    if (typeof window !== 'undefined') return getStoredCoupons()
+    return []
+  })
+  const [showMerchantCouponModal, setShowMerchantCouponModal] = useState<boolean>(false)
+  const [newCouponCode, setNewCouponCode] = useState<string>('')
+  const [newCouponType, setNewCouponType] = useState<'flat' | 'percentage'>('flat')
+  const [newCouponValue, setNewCouponValue] = useState<number>(50)
+  const [newCouponMinOrder, setNewCouponMinOrder] = useState<number>(250)
+  const [newCouponDesc, setNewCouponDesc] = useState<string>('')
 
   // Cafe Operating Open/Closed toggle
   const [isOpen, setIsOpen] = useState<boolean>(cafe.is_open)
@@ -161,16 +193,64 @@ export default function MerchantPage() {
       setWallets(getStoredWallets())
       setTransactions(getStoredTransactions())
       setBankDetails(getCafeBankDetails(cafe.id))
+      setDynamicConfig(getDynamicConfig())
+      setCoupons(getStoredCoupons())
     }
 
     window.addEventListener(SAGA_ORDERS_EVENT, handleUpdate)
+    window.addEventListener(SAGA_CONFIG_EVENT, handleUpdate)
+    window.addEventListener(SAGA_PROMO_EVENT, handleUpdate)
     window.addEventListener('storage', handleUpdate)
 
     return () => {
       window.removeEventListener(SAGA_ORDERS_EVENT, handleUpdate)
+      window.removeEventListener(SAGA_CONFIG_EVENT, handleUpdate)
+      window.removeEventListener(SAGA_PROMO_EVENT, handleUpdate)
       window.removeEventListener('storage', handleUpdate)
     }
   }, [soundAlertEnabled, cafe.id, filterScope])
+
+  const handleExportSalesCsv = () => {
+    if (!dynamicConfig.allowMerchantCsvExport) {
+      setShowProFeatureModal(true)
+      return
+    }
+    exportDailySalesCsv(displayOrders, cafe.name)
+    sounds.playNotificationChime()
+    showToast(`📥 Daily Sales & Tax CSV exported for ${cafe.name}!`)
+  }
+
+  const handleCreateMerchantCoupon = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!newCouponCode.trim()) return
+
+    createCoupon({
+      code: newCouponCode,
+      discountType: newCouponType,
+      discountValue: Number(newCouponValue),
+      minOrderAmount: Number(newCouponMinOrder),
+      description:
+        newCouponDesc.trim() ||
+        `${newCouponType === 'flat' ? `Flat ₹${newCouponValue} OFF` : `${newCouponValue}% OFF`} on orders above ₹${newCouponMinOrder} at ${cafe.name}`,
+      cafeId: cafe.id,
+      cafeName: cafe.name,
+      createdBy: 'cafe_owner',
+    })
+
+    setCoupons(getStoredCoupons())
+    setShowMerchantCouponModal(false)
+    setNewCouponCode('')
+    setNewCouponDesc('')
+    sounds.playSuccessCelebration()
+    showToast(`🎉 Exclusive offer "${newCouponCode.toUpperCase()}" created for ${cafe.name}!`)
+  }
+
+  const handleToggleMerchantCoupon = (id: string) => {
+    toggleCoupon(id)
+    setCoupons(getStoredCoupons())
+    sounds.playNotificationChime()
+    showToast('Promo status updated.')
+  }
 
   const handleOpenBankModal = () => {
     setBankFormHolder(bankDetails.ownerName)
@@ -503,6 +583,18 @@ export default function MerchantPage() {
             <WalletIcon className="w-4 h-4" />
             <span>Wallet &amp; Escrow</span>
           </button>
+
+          <button
+            onClick={() => setActiveTab('promos')}
+            className={`flex-1 min-w-[130px] py-2.5 px-4 rounded-xl text-xs font-bold transition-all tap-feedback cursor-pointer flex items-center justify-center gap-2 ${
+              activeTab === 'promos'
+                ? 'bg-emerald-600 text-white shadow-xs'
+                : 'text-gray-600 hover:text-emerald-700'
+            }`}
+          >
+            <Ticket className="w-4 h-4" />
+            <span>Store Promos ({coupons.filter((c) => !c.cafeId || c.cafeId === cafe.id).length})</span>
+          </button>
         </div>
 
         {/* TAB 1: LIVE ORDERS POS & KDS */}
@@ -534,9 +626,39 @@ export default function MerchantPage() {
                   All Network Cafes ({orders.filter((o) => o.status !== 'delivered').length})
                 </button>
               </div>
-              <span className="text-[11px] text-gray-500 font-semibold px-2">
-                Showing {displayOrders.length} orders
-              </span>
+
+              <div className="flex items-center gap-2">
+                <span className="text-[11px] text-gray-500 font-semibold px-2 hidden sm:inline">
+                  Showing {displayOrders.length} orders
+                </span>
+
+                <button
+                  type="button"
+                  onClick={handleExportSalesCsv}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer ${
+                    dynamicConfig.allowMerchantCsvExport
+                      ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs'
+                      : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300'
+                  }`}
+                  title={
+                    dynamicConfig.allowMerchantCsvExport
+                      ? 'Download Daily Sales Sheet for Bookkeeping & GST'
+                      : 'Pro Feature: Contact SAGA Admin to unlock'
+                  }
+                >
+                  {dynamicConfig.allowMerchantCsvExport ? (
+                    <Download className="w-3.5 h-3.5" />
+                  ) : (
+                    <Lock className="w-3.5 h-3.5 text-amber-600" />
+                  )}
+                  <span>Export Daily Sales (CSV)</span>
+                  {!dynamicConfig.allowMerchantCsvExport && (
+                    <span className="text-[9px] bg-amber-100 text-amber-800 font-extrabold px-1.5 py-0.2 rounded-full uppercase">
+                      PRO
+                    </span>
+                  )}
+                </button>
+              </div>
             </div>
 
             {/* INCOMING NEW ORDER FLASH ALERT FOR CHEF */}
@@ -1181,6 +1303,101 @@ export default function MerchantPage() {
             </div>
           </div>
         )}
+
+        {/* TAB 5: STORE PROMOS & OFFERS */}
+        {activeTab === 'promos' && (
+          <div className="space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-5 rounded-3xl border border-gray-200/80 shadow-xs">
+              <div>
+                <h2 className="text-lg font-black text-slate-900 flex items-center gap-2">
+                  <span>Store Promotions &amp; Discount Offers</span>
+                  <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
+                    {cafe.name}
+                  </span>
+                </h2>
+                <p className="text-xs text-slate-500">
+                  Boost customer orders and college student volume with exclusive discount coupons for your kitchen.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setShowMerchantCouponModal(true)}
+                className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-xs flex items-center gap-1.5 transition-colors cursor-pointer shrink-0"
+              >
+                <Plus className="w-4 h-4" />
+                <span>+ Create Cafe Offer</span>
+              </button>
+            </div>
+
+            {/* Coupons Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {coupons
+                .filter((c) => !c.cafeId || c.cafeId === cafe.id)
+                .map((cpn) => {
+                  const isExclusive = cpn.cafeId === cafe.id
+                  return (
+                    <div
+                      key={cpn.id}
+                      className="bg-white rounded-2xl p-5 border border-slate-200 shadow-2xs space-y-3 flex flex-col justify-between"
+                    >
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="font-mono font-black text-sm text-emerald-900 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-300">
+                            {cpn.code}
+                          </span>
+                          <span
+                            className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                              isExclusive
+                                ? 'bg-purple-100 text-purple-800'
+                                : 'bg-slate-100 text-slate-700'
+                            }`}
+                          >
+                            {isExclusive ? 'Exclusive to Your Cafe' : 'Platform Network Offer'}
+                          </span>
+                        </div>
+
+                        <div>
+                          <h4 className="text-sm font-extrabold text-slate-900">
+                            {cpn.discountType === 'flat'
+                              ? `Flat ₹${cpn.discountValue} OFF`
+                              : `${cpn.discountValue}% OFF (Up to ₹${cpn.maxDiscountAmount || 100})`}
+                          </h4>
+                          <p className="text-xs text-slate-500 mt-0.5">
+                            {cpn.description}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+                        <div className="text-[11px] text-slate-400">
+                          <span>Min Order: ₹{cpn.minOrderAmount}</span>
+                          <span className="mx-1">•</span>
+                          <span className="font-bold text-slate-700">{cpn.usageCount} orders redeemed</span>
+                        </div>
+
+                        {isExclusive ? (
+                          <button
+                            type="button"
+                            onClick={() => handleToggleMerchantCoupon(cpn.id)}
+                            className={`px-3 py-1 rounded-xl text-xs font-bold cursor-pointer transition-colors ${
+                              cpn.isActive
+                                ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200'
+                                : 'bg-slate-200 text-slate-600 hover:bg-slate-300'
+                            }`}
+                          >
+                            {cpn.isActive ? 'Active' : 'Inactive'}
+                          </button>
+                        ) : (
+                          <span className="text-[10px] text-slate-400 italic">Managed by SAGA Admin</span>
+                        )}
+                      </div>
+                    </div>
+                  )
+                })}
+            </div>
+          </div>
+        )}
       </main>
 
       {/* Add Dish Modal */}
@@ -1617,6 +1834,184 @@ export default function MerchantPage() {
                   ) : (
                     <span>Confirm Withdrawal</span>
                   )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* PRO FEATURE LOCKED UPGRADE MODAL */}
+      {showProFeatureModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs animate-fadeIn">
+          <div className="bg-white rounded-3xl max-w-md w-full shadow-2xl border border-slate-200 overflow-hidden animate-scaleIn text-center p-6 space-y-4">
+            <div className="w-16 h-16 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center mx-auto shadow-xs border border-amber-200">
+              <Lock className="w-8 h-8" />
+            </div>
+
+            <div>
+              <span className="text-[10px] font-black uppercase tracking-wider bg-amber-100 text-amber-800 px-2.5 py-0.5 rounded-full">
+                SAGA Pro Feature
+              </span>
+              <h3 className="text-lg font-black text-slate-900 mt-2">
+                Daily Sales &amp; Tax Reconciliation Export
+              </h3>
+              <p className="text-xs text-slate-500 mt-1.5 leading-relaxed">
+                1-Click Excel / CSV sales reporting for bookkeeping and GST filing is part of the <strong>SAGA Merchant Pro</strong> tier.
+              </p>
+            </div>
+
+            <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200 text-left text-xs space-y-2 text-slate-700">
+              <span className="font-bold block text-slate-900">What&apos;s Included in SAGA Pro:</span>
+              <div className="flex items-center gap-2 text-[11px]">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                <span>Automated daily GST, subtotal, and net payout CSV sheets</span>
+              </div>
+              <div className="flex items-center gap-2 text-[11px]">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                <span>Tally / QuickBooks compatible transaction imports</span>
+              </div>
+              <div className="flex items-center gap-2 text-[11px]">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                <span>Priority student courier fleet dispatch</span>
+              </div>
+            </div>
+
+            <p className="text-[11px] text-slate-500">
+              To unlock this feature for <strong>{cafe.name}</strong>, toggle it on in Admin Dynamic Controls or contact support.
+            </p>
+
+            <div className="flex gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setShowProFeatureModal(false)}
+                className="flex-1 py-2.5 border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold text-xs rounded-xl cursor-pointer"
+              >
+                Close
+              </button>
+              <a
+                href="https://wa.me/919876543210?text=Hello%20SAGA%20Admin,%20I%20want%20to%20unlock%20Daily%20Sales%20CSV%20Export%20for%20my%20cafe."
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs rounded-xl shadow-xs transition-colors flex items-center justify-center gap-1.5"
+              >
+                <span>Contact Admin</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MERCHANT CREATE CAFE OFFER MODAL */}
+      {showMerchantCouponModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs animate-fadeIn">
+          <div className="bg-white rounded-3xl max-w-md w-full shadow-2xl border border-slate-200 overflow-hidden animate-scaleIn">
+            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold">
+                  <Ticket className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="font-extrabold text-slate-900 text-sm">Create Cafe Exclusive Offer</h3>
+                  <p className="text-[11px] text-slate-400">Drive orders for {cafe.name}</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowMerchantCouponModal(false)}
+                className="w-8 h-8 rounded-full hover:bg-slate-200 text-slate-500 flex items-center justify-center cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleCreateMerchantCoupon} className="p-6 space-y-4">
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1">
+                  Coupon Code (e.g. SPECIAL50, FEAST20)
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={newCouponCode}
+                  onChange={(e) => setNewCouponCode(e.target.value.toUpperCase())}
+                  placeholder="e.g. SPECIAL50"
+                  className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs font-mono font-bold uppercase text-slate-900 focus:ring-2 focus:ring-emerald-500 outline-none"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">
+                    Discount Type
+                  </label>
+                  <select
+                    value={newCouponType}
+                    onChange={(e) => setNewCouponType(e.target.value as 'flat' | 'percentage')}
+                    className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs font-bold bg-white text-slate-800 focus:outline-none cursor-pointer"
+                  >
+                    <option value="flat">Flat ₹ (Rupees)</option>
+                    <option value="percentage">% Percentage Off</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">
+                    {newCouponType === 'flat' ? 'Discount (₹ INR)' : 'Discount Rate (%)'}
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    max={newCouponType === 'flat' ? 500 : 70}
+                    required
+                    value={newCouponValue}
+                    onChange={(e) => setNewCouponValue(Number(e.target.value))}
+                    className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:ring-2 focus:ring-emerald-500 outline-none"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1">
+                  Minimum Order Value (₹)
+                </label>
+                <input
+                  type="number"
+                  min="100"
+                  step="50"
+                  required
+                  value={newCouponMinOrder}
+                  onChange={(e) => setNewCouponMinOrder(Number(e.target.value))}
+                  className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:ring-2 focus:ring-emerald-500 outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1">
+                  Offer Description
+                </label>
+                <input
+                  type="text"
+                  value={newCouponDesc}
+                  onChange={(e) => setNewCouponDesc(e.target.value)}
+                  placeholder={`e.g. Flat ₹${newCouponValue} OFF at ${cafe.name}`}
+                  className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs text-slate-900 focus:ring-2 focus:ring-emerald-500 outline-none"
+                />
+              </div>
+
+              <div className="pt-2 flex items-center justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowMerchantCouponModal(false)}
+                  className="px-4 py-2 border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold text-xs rounded-xl cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs rounded-xl shadow-md transition-all cursor-pointer"
+                >
+                  Publish Offer
                 </button>
               </div>
             </form>

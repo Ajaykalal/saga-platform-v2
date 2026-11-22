@@ -141,6 +141,9 @@ export async function syncOrderToSupabase(order: Order): Promise<void> {
       pickup_timestamp: order.pickup_timestamp || null,
       delivery_timestamp: order.delivery_timestamp || null,
       estimated_delivery_minutes: order.estimated_delivery_minutes || 25,
+      coupon_code: order.coupon_code || null,
+      discount_amount_inr: order.discount_amount_inr || 0,
+      customer_rating: order.customer_rating || null,
       created_at: order.created_at,
       updated_at: order.updated_at,
     }
@@ -313,6 +316,8 @@ export interface CreateOrderPayload {
   delivery_fee_inr: number
   platform_fee_inr: number
   total_amount_inr: number
+  coupon_code?: string
+  discount_amount_inr?: number
   delivery_address: Order['delivery_address']
   special_instructions?: string
   payment_method: 'upi_direct' | 'cashfree_upi' | 'cod' | 'card'
@@ -342,6 +347,9 @@ export function createNewOrder(payload: CreateOrderPayload): Order {
     delivery_fee_inr: payload.delivery_fee_inr,
     platform_fee_inr: payload.platform_fee_inr,
     total_amount_inr: payload.total_amount_inr,
+    coupon_code: payload.coupon_code || null,
+    discount_amount_inr: payload.discount_amount_inr || 0,
+    customer_rating: null,
     status: 'placed',
     delivery_address: payload.delivery_address,
     special_instructions: payload.special_instructions || null,

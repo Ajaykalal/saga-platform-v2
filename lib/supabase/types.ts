@@ -161,6 +161,15 @@ export interface Order {
   pickup_timestamp?: string | null
   delivery_timestamp?: string | null
   estimated_delivery_minutes?: number
+  coupon_code?: string | null
+  discount_amount_inr?: number | null
+  customer_rating?: {
+    food_rating: number
+    rider_rating: number
+    tip_inr: number
+    review?: string
+    submitted_at: string
+  } | null
   created_at: string
   updated_at: string
 }

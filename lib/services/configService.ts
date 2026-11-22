@@ -12,6 +12,7 @@ export interface DynamicPlatformConfig {
   riderPayoutPerOrderInr: number
   riderCashLimitInr: number
   defaultCommissionRate: number
+  allowMerchantCsvExport: boolean
   announcementBanner: {
     enabled: boolean
     message: string
@@ -29,6 +30,7 @@ export const DEFAULT_PLATFORM_CONFIG: DynamicPlatformConfig = {
   riderPayoutPerOrderInr: 55,
   riderCashLimitInr: 1500,
   defaultCommissionRate: 15,
+  allowMerchantCsvExport: false,
   announcementBanner: {
     enabled: false,
     message: '🌧️ Heavy Monsoon in Koramangala: Delivery may take 10–15 mins extra for rider safety.',
