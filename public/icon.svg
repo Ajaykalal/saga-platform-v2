@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <rect width="512" height="512" rx="128" fill="#10B981"/>
+  <circle cx="256" cy="256" r="160" fill="#047857"/>
+  <!-- Fork & Spoon Utensils -->
+  <path d="M220 180v80c0 19.8-16.2 36-36 36v100h-24V296c-19.8 0-36-16.2-36-36v-80h16v64h12v-64h16v64h12v-64h16zm108 0c26.5 0 48 21.5 48 48 0 21.2-13.8 39.2-33 45.4V396h-30V273.4c-19.2-6.2-33-24.2-33-45.4 0-26.5 21.5-48 48-48z" fill="#FFFFFF"/>
+</svg>

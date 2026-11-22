@@ -1,0 +1,596 @@
+'use client'
+
+import React, { useState, useEffect } from 'react'
+import Link from 'next/link'
+import Image from 'next/image'
+import Navbar from '@/components/Navbar'
+import BottomNav from '@/components/BottomNav'
+import CartDrawer from '@/components/CartDrawer'
+import LiveDeliveryMap from '@/components/LiveDeliveryMap'
+import {
+  Utensils,
+  Clock,
+  CheckCircle2,
+  Phone,
+  ChevronLeft,
+  Bike,
+  MapPin,
+  PackageCheck,
+  Camera,
+  MessageCircle,
+  ExternalLink,
+  ShieldCheck,
+} from 'lucide-react'
+import { getOrderById, SAGA_ORDERS_EVENT } from '@/lib/services/orderService'
+import { SEED_CAFES } from '@/lib/data/mockData'
+import { createClient } from '@/lib/supabase/client'
+import { sounds } from '@/lib/utils/soundEffects'
+import { createWhatsAppUrl } from '@/lib/utils/whatsapp'
+import type { Order, OrderStatus } from '@/lib/supabase/types'
+
+interface OrderTrackingViewProps {
+  orderId: string
+}
+
+export default function OrderTrackingView({ orderId }: OrderTrackingViewProps) {
+  const [order, setOrder] = useState<Order | null>(() => getOrderById(orderId) || null)
+  const [isLiveConnected, setIsLiveConnected] = useState(false)
+  const prevStatusRef = React.useRef<OrderStatus | null>(order?.status || null)
+
+  // Fetch and subscribe to order updates
+  useEffect(() => {
+    // 1. React to local multi-tab / service events
+    const handleUpdate = () => {
+      const updated = getOrderById(orderId)
+      if (updated) {
+        if (prevStatusRef.current && prevStatusRef.current !== updated.status) {
+          sounds.playNotificationChime()
+        }
+        prevStatusRef.current = updated.status
+        setOrder(updated)
+      }
+    }
+
+    window.addEventListener(SAGA_ORDERS_EVENT, handleUpdate)
+    window.addEventListener('storage', handleUpdate)
+
+    // 2. Supabase Realtime channel subscription
+    try {
+      const supabase = createClient()
+      const channel = supabase
+        .channel(`order-tracking-${orderId}`)
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'orders',
+            filter: `id=eq.${orderId}`,
+          },
+          (payload) => {
+            if (payload.new) {
+              const newOrder = payload.new as Order
+              if (prevStatusRef.current && prevStatusRef.current !== newOrder.status) {
+                sounds.playNotificationChime()
+              }
+              prevStatusRef.current = newOrder.status
+              setOrder(newOrder)
+            }
+          }
+        )
+        .subscribe((status) => {
+          if (status === 'SUBSCRIBED') {
+            setIsLiveConnected(true)
+          }
+        })
+
+      return () => {
+        window.removeEventListener(SAGA_ORDERS_EVENT, handleUpdate)
+        window.removeEventListener('storage', handleUpdate)
+        supabase.removeChannel(channel)
+      }
+    } catch {
+      return () => {
+        window.removeEventListener(SAGA_ORDERS_EVENT, handleUpdate)
+        window.removeEventListener('storage', handleUpdate)
+      }
+    }
+  }, [orderId])
+
+  if (!order) {
+    return (
+      <div className="min-h-screen bg-slate-50 text-slate-900 font-sans pb-28">
+        <Navbar />
+        <main className="max-w-md mx-auto px-4 py-16 text-center">
+          <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto text-slate-400 mb-4">
+            <Utensils className="w-8 h-8" />
+          </div>
+          <h2 className="text-xl font-black text-slate-900 mb-2">Order Not Found</h2>
+          <p className="text-xs text-slate-500 mb-6">
+            We could not locate order &quot;{orderId}&quot;. It may still be syncing or placed under another account.
+          </p>
+          <Link
+            href="/orders"
+            className="px-6 py-2.5 rounded-full bg-emerald-600 text-white font-bold text-xs shadow-md hover:bg-emerald-700 transition-colors inline-block"
+          >
+            View All Orders
+          </Link>
+        </main>
+        <BottomNav />
+      </div>
+    )
+  }
+
+  const cafe = SEED_CAFES.find((c) => c.id === order.cafe_id)
+
+  // Status index for timeline stepper
+  const statusSteps: { key: OrderStatus; label: string; subtext: string; icon: React.ElementType }[] = [
+    {
+      key: 'placed',
+      label: 'Order Placed',
+      subtext: 'Your order was sent to the kitchen',
+      icon: Clock,
+    },
+    {
+      key: 'preparing',
+      label: 'Kitchen Preparing',
+      subtext: 'Chef is baking your meal fresh',
+      icon: Utensils,
+    },
+    {
+      key: 'ready_for_pickup',
+      label: 'Ready for Pickup',
+      subtext: 'Food is packed and sealed hot',
+      icon: PackageCheck,
+    },
+    {
+      key: 'out_for_delivery',
+      label: 'Out for Delivery',
+      subtext: 'Student Rider Vikram is en route',
+      icon: Bike,
+    },
+    {
+      key: 'delivered',
+      label: 'Delivered',
+      subtext: 'Enjoy your artisan SAGA feast!',
+      icon: CheckCircle2,
+    },
+  ]
+
+  const statusOrderIndexMap: Record<OrderStatus, number> = {
+    placed: 0,
+    confirmed: 1,
+    preparing: 1,
+    ready_for_pickup: 2,
+    out_for_delivery: 3,
+    delivered: 4,
+    cancelled: -1,
+  }
+
+  const currentStepIndex = statusOrderIndexMap[order.status] ?? 0
+
+  return (
+    <div className="min-h-screen bg-slate-50 text-slate-900 font-sans pb-32">
+      {/* Top Header */}
+      <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-slate-200 shadow-xs">
+        <div className="max-w-2xl mx-auto px-4 h-14 flex items-center justify-between">
+          <Link
+            href="/orders"
+            className="flex items-center gap-1.5 text-xs font-bold text-slate-600 hover:text-slate-900"
+          >
+            <ChevronLeft className="w-4 h-4" />
+            <span>All Orders</span>
+          </Link>
+
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="text-xs font-bold text-emerald-700">
+              {isLiveConnected ? 'Live Realtime' : 'Live Sync Active'}
+            </span>
+          </div>
+        </div>
+      </header>
+
+      <main className="max-w-md mx-auto px-4 py-5 space-y-5">
+        {/* Order Identity Banner */}
+        <div className="space-y-1">
+          <span className="text-[11px] font-black uppercase tracking-widest text-slate-400 block">
+            ORDER #{order.order_number}
+          </span>
+          <h1 className="text-2xl font-black text-slate-900">
+            {order.status === 'delivered' ? (
+              <span className="text-emerald-700">Order Delivered 🎉</span>
+            ) : order.status === 'out_for_delivery' ? (
+              <>
+                Arriving in <span className="text-emerald-600">8–12 mins</span>
+              </>
+            ) : (
+              <>
+                Arriving in <span className="text-emerald-600">20–25 mins</span>
+              </>
+            )}
+          </h1>
+          <p className="text-xs text-slate-500">
+            {cafe?.name || 'Saga Cafe'} • {order.items.reduce((s, i) => s + i.quantity, 0)} items
+          </p>
+        </div>
+
+        {/* Hero Visual Banner */}
+        <div className="relative w-full h-44 rounded-2xl overflow-hidden shadow-sm">
+          <Image
+            src={
+              cafe?.banner_url ||
+              'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800'
+            }
+            alt="Saga Cafe Food"
+            fill
+            className="object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/20 to-transparent" />
+          <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between text-white text-xs">
+            <div className="flex items-center gap-1.5 font-bold">
+              <Utensils className="w-4 h-4 text-emerald-400" />
+              <span>
+                {order.status === 'delivered'
+                  ? 'Delivered with safe hygiene protocols'
+                  : order.status === 'out_for_delivery'
+                  ? 'Rider is on the way to your door'
+                  : 'Artisan kitchen is crafting your meal'}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Free Live GPS Delivery Route Map & Google Maps Navigation */}
+        <LiveDeliveryMap
+          cafeName={cafe?.name || 'Saga Cafe'}
+          cafeAddress={cafe?.address || 'Koramangala, Bengaluru'}
+          cafeCoordinates={{
+            lat: cafe?.latitude ? Number(cafe.latitude) : 12.934533,
+            lng: cafe?.longitude ? Number(cafe.longitude) : 77.626579,
+          }}
+          customerAddress={`${order.delivery_address.building}, ${order.delivery_address.street}`}
+          customerCoordinates={{ lat: 12.9382, lng: 77.6195 }}
+          orderStatus={order.status}
+          riderName="Vikram Singh (Student Courier)"
+        />
+
+        {/* Student Rider Delivery Handover OTP */}
+        {order.status !== 'delivered' && (
+          <div className="bg-emerald-50 border-2 border-emerald-500/40 rounded-2xl p-4 flex items-center justify-between shadow-xs">
+            <div>
+              <span className="text-[11px] font-black uppercase tracking-wider text-emerald-800 block">
+                Handover Verification OTP
+              </span>
+              <p className="text-xs text-emerald-700 mt-0.5">
+                Share this 4-digit code with the courier upon arrival:
+              </p>
+            </div>
+            <div className="font-mono font-black text-xl bg-white px-3.5 py-1.5 rounded-xl border border-emerald-300 text-emerald-900 tracking-wider shadow-xs">
+              {order.delivery_otp || '4829'}
+            </div>
+          </div>
+        )}
+
+        {/* Strict No-Cancellation Guarantee Notice */}
+        <div className="bg-slate-100 border border-slate-200 rounded-xl p-3 flex items-center justify-between text-xs text-slate-700">
+          <div className="flex items-center gap-2">
+            <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
+            <span className="font-medium text-[11px]">
+              Fresh kitchen preparation active • Orders cannot be cancelled
+            </span>
+          </div>
+          <span className="text-[10px] font-black uppercase tracking-wider bg-white px-2 py-0.5 rounded border border-slate-200 text-slate-600">
+            {order.payment_method === 'cod' ? 'COD' : 'Paytm UPI'}
+          </span>
+        </div>
+
+        {/* Vertical Status Stepper Timeline */}
+        <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-xs relative">
+          <h3 className="font-black text-slate-900 text-sm mb-4">
+            Live Delivery Progress
+          </h3>
+
+          <div className="space-y-6 relative">
+            {statusSteps.map((step, idx) => {
+              const isPast = idx < currentStepIndex
+              const isCurrent = idx === currentStepIndex
+              const StepIcon = step.icon
+
+              return (
+                <div key={step.key} className="flex items-start gap-3.5 relative">
+                  {/* Connecting Line */}
+                  {idx < statusSteps.length - 1 && (
+                    <div
+                      className={`absolute left-3 top-7 w-0.5 h-10 -ml-[1px] transition-colors ${
+                        idx < currentStepIndex ? 'bg-emerald-600' : 'bg-slate-200'
+                      }`}
+                    />
+                  )}
+
+                  {/* Step Bubble */}
+                  <div
+                    className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 z-10 transition-all ${
+                      isPast
+                        ? 'bg-emerald-600 text-white'
+                        : isCurrent
+                        ? 'bg-emerald-600 text-white ring-4 ring-emerald-100 animate-pulse'
+                        : 'bg-slate-100 text-slate-400'
+                    }`}
+                  >
+                    {isPast ? (
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                    ) : (
+                      <StepIcon className="w-3 h-3" />
+                    )}
+                  </div>
+
+                  {/* Step Text */}
+                  <div className="flex flex-col">
+                    <span
+                      className={`text-xs font-bold leading-tight ${
+                        isCurrent
+                          ? 'text-emerald-700 font-black'
+                          : isPast
+                          ? 'text-slate-900'
+                          : 'text-slate-400'
+                      }`}
+                    >
+                      {step.label}
+                    </span>
+                    <span
+                      className={`text-[11px] mt-0.5 ${
+                        isCurrent ? 'text-slate-600 italic' : 'text-slate-400'
+                      }`}
+                    >
+                      {step.subtext}
+                    </span>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+
+        {/* Student Rider Info Card */}
+        {order.status === 'out_for_delivery' && (
+          <div className="bg-white rounded-2xl p-4 border border-blue-200/80 shadow-xs flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-11 h-11 rounded-full bg-blue-100 text-blue-800 font-black text-sm flex items-center justify-center">
+                VS
+              </div>
+              <div>
+                <div className="flex items-center gap-1.5">
+                  <h4 className="font-extrabold text-slate-900 text-sm">Vikram Singh</h4>
+                  <span className="text-[10px] font-bold bg-blue-50 text-blue-700 px-2 py-0.2 rounded-full">
+                    Student Rider
+                  </span>
+                </div>
+                <p className="text-xs text-slate-500 mt-0.5 flex items-center gap-1">
+                  <Bike className="w-3 h-3 text-blue-600" /> Hero Electric Scooter • 4.9 ★
+                </p>
+              </div>
+            </div>
+
+            <a
+              href="tel:+919770055667"
+              className="w-10 h-10 rounded-full bg-emerald-600 text-white flex items-center justify-center hover:bg-emerald-700 shadow-xs"
+              aria-label="Call Rider"
+            >
+              <Phone className="w-4 h-4" />
+            </a>
+          </div>
+        )}
+
+        {/* Courier Parcel Proof Photos (Pickup & Delivery) */}
+        {(order.pickup_photo_url || order.delivery_photo_url) && (
+          <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1.5">
+                <Camera className="w-4 h-4 text-emerald-600" />
+                <h3 className="font-black text-slate-900 text-xs uppercase tracking-wider">
+                  Courier Parcel Proof Photos
+                </h3>
+              </div>
+              <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full flex items-center gap-1">
+                <ShieldCheck className="w-3 h-3" /> SAGA Verified
+              </span>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              {order.pickup_photo_url ? (
+                <div className="space-y-1">
+                  <span className="text-[11px] font-bold text-slate-700 flex items-center gap-1">
+                    <CheckCircle2 className="w-3 h-3 text-emerald-600" /> 1. Cafe Pickup
+                  </span>
+                  <div className="relative aspect-video rounded-xl overflow-hidden border border-slate-200 bg-slate-100 shadow-2xs">
+                    <Image
+                      src={order.pickup_photo_url}
+                      alt="Pickup Proof"
+                      fill
+                      className="object-cover"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+                    <div className="absolute bottom-1 right-1 bg-black/70 text-white text-[9px] px-1.5 py-0.5 rounded font-mono">
+                      {order.pickup_timestamp
+                        ? new Date(order.pickup_timestamp).toLocaleTimeString([], {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          })
+                        : 'Sealed'}
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-1 opacity-60">
+                  <span className="text-[11px] font-medium text-slate-500">1. Cafe Pickup</span>
+                  <div className="aspect-video rounded-xl border border-dashed border-slate-300 flex items-center justify-center text-[10px] text-slate-400">
+                    Awaiting Pickup
+                  </div>
+                </div>
+              )}
+
+              {order.delivery_photo_url ? (
+                <div className="space-y-1">
+                  <span className="text-[11px] font-bold text-slate-700 flex items-center gap-1">
+                    <CheckCircle2 className="w-3 h-3 text-emerald-600" /> 2. Handover Drop
+                  </span>
+                  <div className="relative aspect-video rounded-xl overflow-hidden border border-slate-200 bg-slate-100 shadow-2xs">
+                    <Image
+                      src={order.delivery_photo_url}
+                      alt="Delivery Proof"
+                      fill
+                      className="object-cover"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+                    <div className="absolute bottom-1 right-1 bg-black/70 text-white text-[9px] px-1.5 py-0.5 rounded font-mono">
+                      {order.delivery_timestamp
+                        ? new Date(order.delivery_timestamp).toLocaleTimeString([], {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          })
+                        : 'Delivered'}
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-1 opacity-60">
+                  <span className="text-[11px] font-medium text-slate-500">2. Handover Drop</span>
+                  <div className="aspect-video rounded-xl border border-dashed border-slate-300 flex items-center justify-center text-[10px] text-slate-400">
+                    Pending Drop
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* WhatsApp Order Updates Card */}
+        <div className="bg-emerald-50 border border-emerald-200/80 rounded-2xl p-4 flex items-center justify-between shadow-xs">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+              <MessageCircle className="w-5 h-5" />
+            </div>
+            <div>
+              <h4 className="font-black text-emerald-950 text-xs">
+                Get WhatsApp Delivery Updates
+              </h4>
+              <p className="text-[11px] text-emerald-800 mt-0.5">
+                Receive live rider location & invoice via WhatsApp
+              </p>
+            </div>
+          </div>
+
+          <a
+            href={createWhatsAppUrl(
+              order.delivery_address.phone,
+              `Hello SAGA Support! I'm tracking order #${order.order_number}. Please keep me updated on WhatsApp.`
+            )}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center gap-1 shadow-xs transition-colors shrink-0 cursor-pointer"
+          >
+            <span>Updates</span>
+            <ExternalLink className="w-3 h-3" />
+          </a>
+        </div>
+
+        {/* Quick Contact Actions */}
+        <div className="flex gap-2">
+          <a
+            href="tel:+919880011223"
+            className="flex-1 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm active:scale-95 transition-all"
+          >
+            <Phone className="w-4 h-4" />
+            <span>Call Cafe ({cafe?.name || 'Saga Cafe'})</span>
+          </a>
+
+          <Link
+            href="/"
+            className="px-4 py-3 bg-white border border-slate-200 hover:border-slate-300 text-slate-700 rounded-xl font-bold text-xs flex items-center justify-center gap-1 active:scale-95 transition-all"
+          >
+            <span>Home</span>
+          </Link>
+        </div>
+
+        {/* Order Items & Bill Summary */}
+        <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs space-y-3">
+          <div className="flex justify-between items-center pb-2 border-b border-slate-100">
+            <h3 className="font-black text-xs uppercase tracking-wider text-slate-500">
+              Items Summary ({order.items.reduce((s, i) => s + i.quantity, 0)})
+            </h3>
+            <span className="text-xs font-bold text-emerald-700">
+              {order.payment_method.toUpperCase()} • {order.payment_status.toUpperCase()}
+            </span>
+          </div>
+
+          <div className="space-y-2">
+            {order.items.map((item, idx) => (
+              <div key={idx} className="flex justify-between items-center text-xs text-slate-700">
+                <span className="font-medium">
+                  {item.quantity}x {item.name}
+                </span>
+                <span className="font-extrabold text-slate-900">
+                  ₹{item.price_inr * item.quantity}
+                </span>
+              </div>
+            ))}
+          </div>
+
+          {/* Bill Calculation */}
+          <div className="pt-2 border-t border-dashed border-slate-200 space-y-1.5 text-xs text-slate-500">
+            <div className="flex justify-between">
+              <span>Item Subtotal</span>
+              <span>₹{order.subtotal_inr}</span>
+            </div>
+            <div className="flex justify-between">
+              <span>Delivery Fee</span>
+              <span>{order.delivery_fee_inr === 0 ? 'FREE' : `₹${order.delivery_fee_inr}`}</span>
+            </div>
+            <div className="flex justify-between">
+              <span>Platform Fee</span>
+              <span>₹{order.platform_fee_inr || 5}</span>
+            </div>
+            <div className="flex justify-between items-baseline pt-2 border-t border-slate-100 text-slate-900 font-black text-sm">
+              <span>Grand Total</span>
+              <span className="text-emerald-700 text-base">₹{order.total_amount_inr}</span>
+            </div>
+          </div>
+
+          {/* Delivery Drop Location */}
+          <div className="pt-2 border-t border-slate-100 text-xs text-slate-500 flex items-start gap-2">
+            <MapPin className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" />
+            <div className="space-y-0.5">
+              <div className="flex items-center gap-2">
+                <span className="font-bold text-slate-900">
+                  Deliver to {order.delivery_address.recipient_name}
+                </span>
+                {order.delivery_address.label && (
+                  <span className="text-[10px] font-bold bg-emerald-50 text-emerald-800 px-1.5 py-0.2 rounded">
+                    {order.delivery_address.label}
+                  </span>
+                )}
+                {order.delivery_address.distance_km && (
+                  <span className="text-[10px] font-bold text-slate-500">
+                    ({order.delivery_address.distance_km} km)
+                  </span>
+                )}
+              </div>
+              <p className="text-slate-600 text-[11px]">
+                {order.delivery_address.building ? `${order.delivery_address.building}, ` : ''}
+                {order.delivery_address.street}, {order.delivery_address.city}{' '}
+                {order.delivery_address.postal_code ? `- ${order.delivery_address.postal_code}` : ''}
+              </p>
+              <p className="text-[10px] text-slate-400">
+                Contact: {order.delivery_address.phone}
+              </p>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <CartDrawer />
+      <BottomNav />
+    </div>
+  )
+}
