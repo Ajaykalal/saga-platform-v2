@@ -18,12 +18,26 @@ export interface PromoCoupon {
 
 export const SEED_COUPONS: PromoCoupon[] = [
   {
+    id: 'coupon-foodlo-50',
+    code: 'FOODLO50',
+    discountType: 'flat',
+    discountValue: 50,
+    minOrderAmount: 250,
+    description: 'Flat ₹50 OFF on fresh local food & cafe orders above ₹250',
+    cafeId: null,
+    cafeName: 'All Network Cafes',
+    isActive: true,
+    usageCount: 142,
+    createdBy: 'admin',
+    createdAt: '2026-01-10T10:00:00Z',
+  },
+  {
     id: 'coupon-saga-50',
     code: 'SAGA50',
     discountType: 'flat',
     discountValue: 50,
     minOrderAmount: 250,
-    description: 'Flat ₹50 OFF on sourdough pizzas & brews above ₹250',
+    description: 'Flat ₹50 OFF on fresh orders above ₹250',
     cafeId: null,
     cafeName: 'All Network Cafes',
     isActive: true,

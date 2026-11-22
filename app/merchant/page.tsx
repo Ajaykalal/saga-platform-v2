@@ -643,7 +643,7 @@ export default function MerchantPage() {
                   title={
                     dynamicConfig.allowMerchantCsvExport
                       ? 'Download Daily Sales Sheet for Bookkeeping & GST'
-                      : 'Pro Feature: Contact SAGA Admin to unlock'
+                      : 'Pro Feature: Contact FoodLo Admin to unlock'
                   }
                 >
                   {dynamicConfig.allowMerchantCsvExport ? (
@@ -1389,7 +1389,7 @@ export default function MerchantPage() {
                             {cpn.isActive ? 'Active' : 'Inactive'}
                           </button>
                         ) : (
-                          <span className="text-[10px] text-slate-400 italic">Managed by SAGA Admin</span>
+                          <span className="text-[10px] text-slate-400 italic">Managed by FoodLo Admin</span>
                         )}
                       </div>
                     </div>
@@ -1851,18 +1851,18 @@ export default function MerchantPage() {
 
             <div>
               <span className="text-[10px] font-black uppercase tracking-wider bg-amber-100 text-amber-800 px-2.5 py-0.5 rounded-full">
-                SAGA Pro Feature
+                FoodLo Pro Feature
               </span>
               <h3 className="text-lg font-black text-slate-900 mt-2">
                 Daily Sales &amp; Tax Reconciliation Export
               </h3>
               <p className="text-xs text-slate-500 mt-1.5 leading-relaxed">
-                1-Click Excel / CSV sales reporting for bookkeeping and GST filing is part of the <strong>SAGA Merchant Pro</strong> tier.
+                1-Click Excel / CSV sales reporting for bookkeeping and GST filing is part of the <strong>FoodLo Merchant Pro</strong> tier.
               </p>
             </div>
 
             <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200 text-left text-xs space-y-2 text-slate-700">
-              <span className="font-bold block text-slate-900">What&apos;s Included in SAGA Pro:</span>
+              <span className="font-bold block text-slate-900">What&apos;s Included in FoodLo Pro:</span>
               <div className="flex items-center gap-2 text-[11px]">
                 <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
                 <span>Automated daily GST, subtotal, and net payout CSV sheets</span>
@@ -1890,7 +1890,7 @@ export default function MerchantPage() {
                 Close
               </button>
               <a
-                href="https://wa.me/919876543210?text=Hello%20SAGA%20Admin,%20I%20want%20to%20unlock%20Daily%20Sales%20CSV%20Export%20for%20my%20cafe."
+                href="https://wa.me/919876543210?text=Hello%20FoodLo%20Admin,%20I%20want%20to%20unlock%20Daily%20Sales%20CSV%20Export%20for%20my%20cafe."
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs rounded-xl shadow-xs transition-colors flex items-center justify-center gap-1.5"

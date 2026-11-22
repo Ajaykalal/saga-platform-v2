@@ -1,16 +1,18 @@
 /**
- * SAGA Central Payment & UPI Configuration
- * Primary Merchant UPI for Ajay Kalal / SAGA Platform
+ * FoodLo Central Payment & UPI Configuration
+ * Primary Merchant UPI for Ajay Kalal / FoodLo Platform
  */
 
 export const SAGA_PAYMENT_CONFIG = {
   merchantName: 'Ajay Kalal',
-  platformBrand: 'SAGA Platform',
+  platformBrand: 'FoodLo Platform',
   upiId: 'paytm.s2hlgrh@pty',
   qrImageUrl: '/images/paytm-qr.jpg',
   supportPhone: '+919880011223',
   supportWhatsApp: '919900012345',
 }
+
+export const FOODLO_PAYMENT_CONFIG = SAGA_PAYMENT_CONFIG
 
 /**
  * Generate standard NPCI UPI Deep Link for mobile 1-tap checkout
@@ -22,7 +24,7 @@ export function createUpiPaymentIntent(params: {
   note?: string
 }): string {
   const { amountInr, orderNumber, note } = params
-  const cleanNote = note || `Order ${orderNumber} - SAGA Cafe`
+  const cleanNote = note || `Order ${orderNumber} - FoodLo`
   const encodedName = encodeURIComponent(SAGA_PAYMENT_CONFIG.merchantName)
   const encodedNote = encodeURIComponent(cleanNote)
 

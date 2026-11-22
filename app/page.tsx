@@ -167,7 +167,7 @@ export default function Home() {
           <div className="relative z-10 max-w-lg space-y-2">
             <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/15 backdrop-blur-md text-emerald-200 text-xs font-semibold rounded-full border border-white/10">
               <Sparkles className="w-3.5 h-3.5 text-emerald-300" />
-              SAGA Multi-Cafe Delivery
+              FoodLo Express Delivery
             </span>
             <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight leading-tight">
               Artisan Crusts, Smash Burgers & Specialty Brews

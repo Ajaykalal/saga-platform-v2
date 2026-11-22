@@ -313,7 +313,7 @@ export default function RiderPage() {
     setCelebrationMessage(
       isCod && codPaymentType === 'cash'
         ? `🎉 Delivery Complete! ₹55 fee credited. Physical cash ₹${currentActiveOrder.total_amount_inr} added to Cash-in-Hand.`
-        : '🎉 Delivery Complete! ₹55 credited to your SAGA Rider Wallet.'
+        : '🎉 Delivery Complete! ₹55 credited to your FoodLo Rider Wallet.'
     )
     triggerHaptic()
     setTimeout(() => setCelebrationMessage(null), 5000)
@@ -573,7 +573,7 @@ export default function RiderPage() {
                   You are currently Offline
                 </h3>
                 <p className="text-slate-500 text-xs max-w-sm mx-auto mb-6">
-                  Turn your toggle ON to receive instant delivery pings from nearby SAGA cafes and earn ₹45–₹65 per campus drop.
+                  Turn your toggle ON to receive instant delivery pings from nearby FoodLo partner cafes and earn ₹45–₹65 per campus drop.
                 </p>
                 <button
                   onClick={() => setIsOnline(true)}
@@ -941,7 +941,7 @@ export default function RiderPage() {
                           </div>
 
                           <p className="text-[11px] text-amber-900">
-                            Ask customer if they are paying in physical cash or want to scan your SAGA UPI QR:
+                            Ask customer if they are paying in physical cash or want to scan your FoodLo UPI QR:
                           </p>
 
                           <div className="grid grid-cols-2 gap-2">
@@ -983,7 +983,7 @@ export default function RiderPage() {
                                 <QrCode className="w-4 h-4" />
                                 {codPaymentType === 'upi' && <Check className="w-3.5 h-3.5" />}
                               </div>
-                              <span>SAGA Paytm UPI QR</span>
+                              <span>FoodLo Paytm UPI QR</span>
                               <span className="text-[10px] opacity-80 mt-0.5">Direct to Ajay Kalal</span>
                             </button>
                           </div>
@@ -993,7 +993,7 @@ export default function RiderPage() {
                             <div className="p-3 bg-white rounded-xl border border-emerald-300 text-center space-y-2">
                               <div className="flex items-center justify-between pb-1 border-b border-slate-100">
                                 <span className="text-xs font-bold text-emerald-900">
-                                  Customer Scans SAGA QR
+                                  Customer Scans FoodLo QR
                                 </span>
                                 <span className="text-xs font-black text-emerald-700">
                                   Amount: ₹{currentActiveOrder.total_amount_inr}
@@ -1256,7 +1256,7 @@ export default function RiderPage() {
                     onClick={() => setShowRemitModal(true)}
                     className="px-3 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs shadow-xs transition-colors cursor-pointer"
                   >
-                    Remit to SAGA
+                    Remit to FoodLo
                   </button>
                 )}
               </div>
@@ -1752,7 +1752,7 @@ export default function RiderPage() {
             </div>
 
             <p className="text-xs text-slate-500">
-              You are remitting <strong>₹{floatingCashInHand}</strong> of collected COD physical cash directly to SAGA central bank account.
+              You are remitting <strong>₹{floatingCashInHand}</strong> of collected COD physical cash directly to FoodLo central bank account.
             </p>
 
             <div className="relative w-44 h-56 mx-auto rounded-xl overflow-hidden border border-slate-200 shadow-xs">
@@ -1781,7 +1781,7 @@ export default function RiderPage() {
                   const remitted = floatingCashInHand
                   setFloatingCashInHand(0)
                   setShowRemitModal(false)
-                  setCelebrationMessage(`🎉 Remitted ₹${remitted} to SAGA. Cash-in-Hand balance reset to ₹0.`)
+                  setCelebrationMessage(`🎉 Remitted ₹${remitted} to FoodLo. Cash-in-Hand balance reset to ₹0.`)
                   sounds.playSuccessCelebration()
                   setTimeout(() => setCelebrationMessage(null), 5000)
                 }}

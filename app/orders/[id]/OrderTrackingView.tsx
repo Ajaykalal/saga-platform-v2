@@ -244,7 +244,7 @@ export default function OrderTrackingView({ orderId }: OrderTrackingViewProps) {
     {
       key: 'delivered',
       label: 'Delivered',
-      subtext: 'Enjoy your artisan SAGA feast!',
+      subtext: 'Enjoy your fresh FoodLo feast!',
       icon: CheckCircle2,
     },
   ]
@@ -347,7 +347,7 @@ export default function OrderTrackingView({ orderId }: OrderTrackingViewProps) {
                       Feedback Submitted
                     </span>
                     <h3 className="text-sm font-black text-emerald-950">
-                      Thank you for rating your SAGA meal!
+                      Thank you for rating your FoodLo meal!
                     </h3>
                   </div>
                 </div>
@@ -740,7 +740,7 @@ export default function OrderTrackingView({ orderId }: OrderTrackingViewProps) {
                 </h3>
               </div>
               <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full flex items-center gap-1">
-                <ShieldCheck className="w-3 h-3" /> SAGA Verified
+                <ShieldCheck className="w-3 h-3" /> FoodLo Verified
               </span>
             </div>
 
@@ -831,7 +831,7 @@ export default function OrderTrackingView({ orderId }: OrderTrackingViewProps) {
           <a
             href={createWhatsAppUrl(
               order.delivery_address.phone,
-              `Hello SAGA Support! I'm tracking order #${order.order_number}. Please keep me updated on WhatsApp.`
+              `Hello FoodLo Support! I'm tracking order #${order.order_number}. Please keep me updated on WhatsApp.`
             )}
             target="_blank"
             rel="noopener noreferrer"

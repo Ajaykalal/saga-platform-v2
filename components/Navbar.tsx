@@ -78,7 +78,7 @@ export default function Navbar({
             </div>
             <div className="flex flex-col">
               <span className="font-extrabold text-lg tracking-tight text-gray-900 leading-tight">
-                {cafeName ? cafeName : 'SAGA Cafe'}
+                {cafeName ? cafeName : 'FoodLo'}
               </span>
               <span className="text-[11px] font-medium text-emerald-600 flex items-center gap-1">
                 <MapPin className="w-3 h-3 text-emerald-500" />

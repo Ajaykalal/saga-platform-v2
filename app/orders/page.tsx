@@ -258,7 +258,7 @@ export default function OrdersPage() {
                 href="/"
                 className="px-6 py-2.5 rounded-full bg-emerald-600 text-white font-bold text-xs shadow-md hover:bg-emerald-700 transition-colors inline-block"
               >
-                Browse SAGA Cafes
+                Browse FoodLo Cafes
               </Link>
             </div>
           ) : (

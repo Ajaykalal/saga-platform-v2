@@ -90,7 +90,7 @@ export default function LoginPage() {
             <Utensils className="w-7 h-7" />
           </Link>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight">
-            SAGA Platform
+            FoodLo Platform
           </h1>
           <p className="text-xs sm:text-sm text-gray-500">
             Sign in to access Customer, Merchant, Rider & Admin portals
@@ -381,7 +381,7 @@ export default function LoginPage() {
           {/* Trust Footer */}
           <div className="pt-4 border-t border-gray-100 flex items-center justify-center gap-2 text-gray-400 text-xs">
             <ShieldCheck className="w-4 h-4 text-emerald-600" />
-            <span>Secured by SAGA Auth &amp; Supabase RLS</span>
+            <span>Secured by FoodLo Auth &amp; Supabase RLS</span>
           </div>
         </div>
 

@@ -11,14 +11,14 @@ export const viewport: Viewport = {
 }
 
 export const metadata: Metadata = {
-  title: 'SAGA Platform | Hyperlocal Food Delivery & Operations PWA',
+  title: 'FoodLo | Local Food Delivery & Express Operations',
   description:
-    'Where Food Meets Play — Hyperlocal multi-cafe delivery, student rider courier network, and real-time kitchen operations.',
+    'Bhookh Lagi? FoodLo se mangwa lo! Hyperlocal food delivery connecting diners, local cafes, student couriers, and kitchen operations.',
   manifest: '/manifest.webmanifest',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
-    title: 'SAGA Cafe',
+    title: 'FoodLo',
   },
 }
 

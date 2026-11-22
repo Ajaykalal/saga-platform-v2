@@ -2,10 +2,10 @@ import type { MetadataRoute } from 'next'
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'SAGA Cafe & Delivery — Where Food Meets Play',
-    short_name: 'SAGA',
+    name: 'FoodLo — Local Food & Express Delivery',
+    short_name: 'FoodLo',
     description:
-      'Hyperlocal multi-cafe delivery and operations PWA connecting diners, cafes, student couriers, and platform admins.',
+      'Hyperlocal food delivery and operations PWA connecting diners, local cafes, student couriers, and kitchen operations.',
     start_url: '/',
     display: 'standalone',
     orientation: 'portrait',

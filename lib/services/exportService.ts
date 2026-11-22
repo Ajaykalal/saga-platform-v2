@@ -114,7 +114,7 @@ export function exportDailySalesCsv(orders: Order[], cafeFilter?: string): void 
       orderTimeIST,
       o.id,
       o.order_number,
-      cafe?.name || 'Saga Network Cafe',
+      cafe?.name || 'FoodLo Partner Cafe',
       o.delivery_address.recipient_name || 'Customer',
       o.delivery_address.phone || '9876543210',
       fullAddress,
@@ -149,7 +149,7 @@ export function exportDailySalesCsv(orders: Order[], cafeFilter?: string): void 
   const cleanFilterName = (cafeFilter && cafeFilter !== 'all' ? cafeFilter : 'All_Cafes')
     .replace(/[^a-zA-Z0-9]/g, '_')
   link.setAttribute('href', url)
-  link.setAttribute('download', `SAGA_Sales_Reconciliation_${cleanFilterName}_${dateStr}.csv`)
+  link.setAttribute('download', `FoodLo_Sales_Reconciliation_${cleanFilterName}_${dateStr}.csv`)
   document.body.appendChild(link)
   link.click()
   document.body.removeChild(link)

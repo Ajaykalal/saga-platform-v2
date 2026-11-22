@@ -452,7 +452,7 @@ export default function AdminPage() {
             <div>
               <div className="flex items-center gap-2">
                 <span className="font-extrabold text-base tracking-tight text-white">
-                  SAGA Super Admin
+                  FoodLo Super Admin
                 </span>
                 <span className="text-[10px] font-bold bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full border border-emerald-500/30">
                   Platform Control
@@ -642,7 +642,7 @@ export default function AdminPage() {
                   Cafe KYC Compliance Queue
                 </h2>
                 <p className="text-xs text-slate-500">
-                  Review FSSAI food safety licenses and GSTIN tax credentials before onboarding partner cafes to the SAGA delivery network.
+                  Review FSSAI food safety licenses and GSTIN tax credentials before onboarding partner cafes to the FoodLo delivery network.
                 </p>
               </div>
 
@@ -790,7 +790,7 @@ export default function AdminPage() {
                       {cafe.kyc_status === 'approved' && (
                         <div className="w-full flex items-center justify-between text-xs">
                           <span className="text-emerald-700 font-bold flex items-center gap-1">
-                            <CheckCircle2 className="w-4 h-4 text-emerald-600" /> Active on SAGA Customer App
+                            <CheckCircle2 className="w-4 h-4 text-emerald-600" /> Active on FoodLo Customer App
                           </span>
                           <button
                             onClick={() => setRejectingCafeId(cafe.id)}
@@ -1257,7 +1257,7 @@ export default function AdminPage() {
                             <div className="flex items-center gap-1.5 mt-0.5">
                               <span className="text-[11px] text-slate-400 font-mono">{rider.phone}</span>
                               <a
-                                href={createWhatsAppUrl(rider.phone, `Hi ${rider.name}, message from SAGA Dispatch Operations.`)}
+                                href={createWhatsAppUrl(rider.phone, `Hi ${rider.name}, message from FoodLo Dispatch Operations.`)}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="text-emerald-600 hover:text-emerald-700"
@@ -1626,7 +1626,7 @@ export default function AdminPage() {
                         </span>
                       </h3>
                       <p className="text-[11px] text-slate-400">
-                        Controls whether partner cafes can export their daily sales reconciliation sheets on their Merchant POS or must upgrade to SAGA Pro.
+                        Controls whether partner cafes can export their daily sales reconciliation sheets on their Merchant POS or must upgrade to FoodLo Pro.
                       </p>
                     </div>
                   </div>
@@ -1652,7 +1652,7 @@ export default function AdminPage() {
                     <span>
                       {cfgAllowMerchantCsvExport
                         ? 'Unlocked for Cafes: Cafe owners can now 1-click download their daily sales sheet on Merchant POS.'
-                        : 'Locked (Pro Feature): Cafe owners see "🔒 Pro Feature: Contact SAGA Admin to unlock" on their dashboard.'}
+                        : 'Locked (Pro Feature): Cafe owners see "🔒 Pro Feature: Contact FoodLo Admin to unlock" on their dashboard.'}
                     </span>
                   </div>
                   <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded ${cfgAllowMerchantCsvExport ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}`}>
@@ -1863,7 +1863,7 @@ export default function AdminPage() {
                       <Zap className="w-5 h-5" />
                     </span>
                     <h3 className="font-black text-lg">
-                      SAGA 3-Day Settlement Automation & Bank Batch Engine
+                      FoodLo 3-Day Settlement Automation & Bank Batch Engine
                     </h3>
                   </div>
                   <p className="text-xs text-slate-300 max-w-2xl leading-relaxed">
@@ -1969,7 +1969,7 @@ export default function AdminPage() {
                         <tr key={wallet.id} className="hover:bg-slate-50/50">
                           <td className="px-4 py-3.5">
                             <span className="font-bold text-slate-900 block">
-                              {cafe ? cafe.name : wallet.role === 'admin' ? 'SAGA Platform Treasury' : 'Student Courier Pool'}
+                              {cafe ? cafe.name : wallet.role === 'admin' ? 'FoodLo Platform Treasury' : 'Student Courier Pool'}
                             </span>
                             <span className="text-[11px] text-slate-400">
                               {bank ? bank.ownerName : wallet.role}
@@ -2136,7 +2136,7 @@ export default function AdminPage() {
                         S
                       </div>
                       <span className="text-xl font-black tracking-tight text-slate-900 uppercase">
-                        SAGA Platform Treasury
+                        FoodLo Platform Treasury
                       </span>
                     </div>
                     <p className="text-xs text-slate-600 font-medium">
@@ -2170,7 +2170,7 @@ export default function AdminPage() {
                   Bank Payout Advice & NEFT/IMPS Transfer Schedule
                 </h4>
                 <p className="text-xs text-slate-600 mt-1 leading-relaxed">
-                  This advice authorizes batch release of funds following mandatory 72-hour customer delivery escrow hold. The balances below have been debited from SAGA Platform Escrow Reserves and credited to partner cafe bank accounts.
+                  This advice authorizes batch release of funds following mandatory 72-hour customer delivery escrow hold. The balances below have been debited from FoodLo Platform Escrow Reserves and credited to partner cafe bank accounts.
                 </p>
               </div>
 
@@ -2244,7 +2244,7 @@ export default function AdminPage() {
                 <div className="text-right">
                   <div className="border border-emerald-600 bg-emerald-50 text-emerald-900 rounded-lg px-4 py-2 inline-block text-center font-bold">
                     <span className="text-[10px] uppercase block tracking-wider text-emerald-700">
-                      SAGA Platform Operations
+                      FoodLo Platform Operations
                     </span>
                     <span className="text-xs font-black text-slate-900 block mt-0.5">
                       Ajay Kalal
@@ -2411,7 +2411,7 @@ export default function AdminPage() {
 
                   <div className="flex items-center gap-2">
                     <a
-                      href={createWhatsAppUrl(selectedOrder.delivery_address.phone, `Hi ${selectedOrder.delivery_address.recipient_name}, this is SAGA Platform regarding your Order #${selectedOrder.order_number}.`)}
+                      href={createWhatsAppUrl(selectedOrder.delivery_address.phone, `Hi ${selectedOrder.delivery_address.recipient_name}, this is FoodLo Platform regarding your Order #${selectedOrder.order_number}.`)}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-xs transition-colors"
@@ -2517,7 +2517,7 @@ export default function AdminPage() {
                   </div>
 
                   <div className="bg-white p-3 rounded-xl border border-emerald-100 shadow-2xs">
-                    <span className="text-[10px] font-bold text-purple-600 uppercase tracking-wide block">SAGA Platform Take</span>
+                    <span className="text-[10px] font-bold text-purple-600 uppercase tracking-wide block">FoodLo Platform Take</span>
                     <span className="text-sm font-black text-purple-700 font-mono mt-0.5 block">
                       ₹{Math.round(selectedOrder.subtotal_inr * 0.15) + (selectedOrder.platform_fee_inr || 5)}
                     </span>

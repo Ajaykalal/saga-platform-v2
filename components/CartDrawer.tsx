@@ -466,7 +466,7 @@ export default function CartDrawer() {
                     type="text"
                     value={couponInput}
                     onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
-                    placeholder="Enter coupon (e.g. SAGA50)"
+                    placeholder="Enter coupon (e.g. FOODLO50)"
                     className="flex-1 text-xs font-mono font-bold uppercase bg-white border border-slate-200 rounded-xl px-3 py-2 text-slate-800 placeholder-slate-400 focus:outline-emerald-500"
                   />
                   <button
@@ -669,7 +669,7 @@ export default function CartDrawer() {
                     <span>Pay at Doorstep Options:</span>
                   </div>
                   <p className="text-[11px] text-slate-500">
-                    You can pay the student rider in physical cash or scan the SAGA Doorstep UPI QR on arrival.
+                    You can pay the rider in physical cash or scan the FoodLo Doorstep UPI QR on arrival.
                   </p>
                 </div>
               )}

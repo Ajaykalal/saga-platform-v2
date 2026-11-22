@@ -31,7 +31,7 @@ export default function FloatingCartBar() {
                     Add ₹{amountNeededForMinimum.toFixed(0)} for Min ₹200 order
                   </span>
                 ) : (
-                  `${activeCafe?.name || 'Saga Cafe'} • ${totalItems} ${totalItems === 1 ? 'item' : 'items'}`
+                  `${activeCafe?.name || 'FoodLo'} • ${totalItems} ${totalItems === 1 ? 'item' : 'items'}`
                 )}
               </span>
               <span className="text-base font-extrabold tracking-tight">
