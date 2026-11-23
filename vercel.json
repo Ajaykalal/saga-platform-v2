@@ -3,7 +3,7 @@
   "crons": [
     {
       "path": "/api/cron/check-order-timeouts",
-      "schedule": "*/5 * * * *"
+      "schedule": "0 1 * * *"
     },
     {
       "path": "/api/cron/settle-escrows",
