@@ -1,6 +1,7 @@
 'use client'
 
 import React, { createContext, useContext, useEffect, useState, useMemo, useCallback } from 'react'
+import { Store, X } from 'lucide-react'
 import type { MenuItem, UserAddress } from '@/lib/supabase/types'
 import {
   getActiveAddress,
@@ -100,6 +101,13 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const [platformConfig, setPlatformConfig] = useState<DynamicPlatformConfig>(() => getDynamicConfig())
   const [appliedCoupon, setAppliedCoupon] = useState<PromoCoupon | null>(null)
   const [couponFeedback, setCouponFeedback] = useState<{ text: string; isError: boolean } | null>(null)
+
+  // Multi-cafe switch conflict modal state
+  const [conflictModalData, setConflictModalData] = useState<{
+    pendingItem: MenuItem
+    pendingCafe: { id: string; name: string; slug: string }
+    currentCafeName: string
+  } | null>(null)
 
   // Dynamic configuration listener
   useEffect(() => {
@@ -218,29 +226,17 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   }, [subtotal, minOrderValue])
 
   const addItem = (item: MenuItem, cafe: { id: string; name: string; slug: string }) => {
+    // If cart contains items from a different cafe, trigger customer-friendly conflict modal
+    if (items.length > 0 && items[0].cafeId !== cafe.id) {
+      setConflictModalData({
+        pendingItem: item,
+        pendingCafe: cafe,
+        currentCafeName: items[0].cafeName,
+      })
+      return
+    }
+
     setItems((prev) => {
-      if (prev.length > 0 && prev[0].cafeId !== cafe.id) {
-        const confirmSwitch = window.confirm(
-          `Your cart contains items from ${prev[0].cafeName}. Discard cart and start a new order from ${cafe.name}?`
-        )
-        if (!confirmSwitch) return prev
-
-        return [
-          {
-            id: item.id,
-            cafeId: cafe.id,
-            cafeName: cafe.name,
-            cafeSlug: cafe.slug,
-            name: item.name,
-            price: Number(item.price_inr),
-            quantity: 1,
-            imageUrl: item.image_url,
-            isVeg: item.is_veg,
-            category: item.category,
-          },
-        ]
-      }
-
       const existingIndex = prev.findIndex((i) => i.id === item.id)
       if (existingIndex > -1) {
         const next = [...prev]
@@ -267,6 +263,30 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         },
       ]
     })
+  }
+
+  const handleConfirmSwitch = () => {
+    if (!conflictModalData) return
+    const { pendingItem, pendingCafe } = conflictModalData
+    setItems([
+      {
+        id: pendingItem.id,
+        cafeId: pendingCafe.id,
+        cafeName: pendingCafe.name,
+        cafeSlug: pendingCafe.slug,
+        name: pendingItem.name,
+        price: Number(pendingItem.price_inr),
+        quantity: 1,
+        imageUrl: pendingItem.image_url,
+        isVeg: pendingItem.is_veg,
+        category: pendingItem.category,
+      },
+    ])
+    setConflictModalData(null)
+  }
+
+  const handleCancelSwitch = () => {
+    setConflictModalData(null)
   }
 
   const removeItem = (itemId: string) => {
@@ -358,6 +378,82 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       }}
     >
       {children}
+
+      {/* Multi-Cafe Switch Modal (Replacing browser confirm with customer-friendly Option C copy) */}
+      {conflictModalData && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs animate-fadeIn">
+          <div className="bg-white rounded-3xl max-w-sm w-full p-5 sm:p-6 shadow-2xl border border-slate-100 text-center animate-scaleIn relative overflow-hidden">
+            {/* Top Close Button */}
+            <button
+              type="button"
+              onClick={handleCancelSwitch}
+              className="absolute top-4 right-4 p-1.5 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+              aria-label="Close"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            {/* Icon */}
+            <div className="w-14 h-14 mx-auto rounded-2xl bg-amber-50 border border-amber-200/80 text-amber-600 flex items-center justify-center mb-3 shadow-xs">
+              <Store className="w-7 h-7" />
+            </div>
+
+            {/* Heading matching user Option C */}
+            <h3 className="text-lg font-black text-slate-900 tracking-tight">
+              One cafe per order
+            </h3>
+
+            {/* Message matching user Option C */}
+            <p className="text-xs sm:text-sm text-slate-600 mt-2 leading-relaxed">
+              Food delivery works from one cafe at a time. To add food from{' '}
+              <span className="font-extrabold text-slate-900">
+                {conflictModalData.pendingCafe.name}
+              </span>
+              , please clear your current cart.
+            </p>
+
+            {/* Cart comparison snapshot */}
+            <div className="my-4 p-3 bg-slate-50 rounded-2xl border border-slate-200/70 text-left space-y-1.5 text-xs">
+              <div className="flex items-center justify-between text-slate-500">
+                <span className="flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-amber-500" />
+                  Current cart:
+                </span>
+                <span className="font-bold text-slate-800 truncate max-w-[130px]">
+                  {conflictModalData.currentCafeName}
+                </span>
+              </div>
+              <div className="flex items-center justify-between text-slate-500">
+                <span className="flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                  New dish:
+                </span>
+                <span className="font-bold text-emerald-700 truncate max-w-[130px]">
+                  {conflictModalData.pendingItem.name}
+                </span>
+              </div>
+            </div>
+
+            {/* Action Buttons matching user Option C */}
+            <div className="grid grid-cols-2 gap-2.5 pt-1">
+              <button
+                type="button"
+                onClick={handleCancelSwitch}
+                className="py-3 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs sm:text-sm font-bold rounded-xl transition-colors cursor-pointer tap-feedback"
+              >
+                Go Back
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmSwitch}
+                className="py-3 px-3 bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-extrabold rounded-xl shadow-md transition-colors cursor-pointer tap-feedback"
+              >
+                Clear Cart &amp; Add
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </CartContext.Provider>
   )
 }
