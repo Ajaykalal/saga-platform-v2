@@ -15,7 +15,6 @@ import {
 } from 'lucide-react'
 import { SEED_CAFES, SEED_MENU_ITEMS, CATEGORIES } from '@/lib/data/mockData'
 import { useCart } from '@/lib/context/CartContext'
-import { getStoredOrders, SAGA_ORDERS_EVENT } from '@/lib/services/orderService'
 import {
   getStoredCafes,
   getStoredMenuItems,
@@ -27,13 +26,12 @@ import {
   SAGA_CONFIG_EVENT,
   type DynamicPlatformConfig,
 } from '@/lib/services/configService'
-import type { Cafe, MenuItem, Order } from '@/lib/supabase/types'
+import type { Cafe, MenuItem } from '@/lib/supabase/types'
 
 export default function Home() {
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('All')
   const { addItem, getItemQuantity, updateQuantity } = useCart()
-  const [activeOrder, setActiveOrder] = useState<Order | null>(null)
   const [platformConfig, setPlatformConfig] = useState<DynamicPlatformConfig>(() => getDynamicConfig())
 
   // Dynamic Cafes & Menu Items state
@@ -74,27 +72,6 @@ export default function Home() {
     }
   }, [])
 
-  useEffect(() => {
-    const checkActiveOrders = () => {
-      const orders = getStoredOrders()
-      const found =
-        orders.find((o) =>
-          ['placed', 'confirmed', 'preparing', 'ready_for_pickup', 'out_for_delivery'].includes(
-            o.status
-          )
-        ) || null
-      setActiveOrder(found)
-    }
-
-    checkActiveOrders()
-    window.addEventListener(SAGA_ORDERS_EVENT, checkActiveOrders)
-    window.addEventListener('storage', checkActiveOrders)
-
-    return () => {
-      window.removeEventListener(SAGA_ORDERS_EVENT, checkActiveOrders)
-      window.removeEventListener('storage', checkActiveOrders)
-    }
-  }, [])
 
   // Filter menu items by search & category
   const filteredMenuItems = useMemo(() => {
@@ -136,39 +113,6 @@ export default function Home() {
       <Navbar />
 
       <main className="w-full max-w-4xl mx-auto px-4 sm:px-6 pt-6 sm:pt-8 pb-32 sm:pb-24 space-y-6 overflow-x-hidden">
-        {/* Active In-Transit Order Banner (Persistent across app re-opens) */}
-        {activeOrder && (
-          <div className="bg-emerald-600 text-white rounded-2xl p-4 shadow-lg flex items-center justify-between animate-fadeIn border border-emerald-500/50">
-            <div className="flex items-center gap-3 min-w-0">
-              <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center shrink-0">
-                <Clock className="w-5 h-5 text-white animate-pulse" />
-              </div>
-              <div className="min-w-0">
-                <div className="flex items-center gap-2">
-                  <span className="text-[10px] font-black uppercase tracking-wider bg-white/20 px-2 py-0.5 rounded-full shrink-0">
-                    Active Order
-                  </span>
-                  <span className="text-xs font-mono font-bold truncate">#{activeOrder.order_number}</span>
-                </div>
-                <p className="text-xs text-emerald-100 font-medium mt-0.5 truncate">
-                  {activeOrder.status === 'out_for_delivery'
-                    ? '🚴 Out for Delivery • Student courier on the way'
-                    : activeOrder.status === 'ready_for_pickup'
-                    ? '📦 Packed & Waiting for Student Courier'
-                    : '🔥 Kitchen Baking Fresh • In Progress'}
-                </p>
-              </div>
-            </div>
-
-            <Link
-              href={`/orders/${activeOrder.id}`}
-              className="px-3.5 py-2 bg-white text-emerald-800 rounded-xl text-xs font-extrabold flex items-center gap-1 shadow-sm hover:bg-emerald-50 transition-colors shrink-0 tap-feedback ml-2"
-            >
-              <span>Track Live</span>
-              <ChevronRight className="w-4 h-4" />
-            </Link>
-          </div>
-        )}
 
         {/* Dynamic Admin Announcement Banner */}
         {platformConfig.announcementBanner?.enabled && (

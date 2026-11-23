@@ -5,6 +5,7 @@ import { AuthProvider } from '@/lib/context/AuthContext'
 import { CartProvider } from '@/lib/context/CartContext'
 import CartDrawer from '@/components/CartDrawer'
 import FloatingCartBar from '@/components/FloatingCartBar'
+import ActiveOrderBottomPill from '@/components/ActiveOrderBottomPill'
 import BottomNav from '@/components/BottomNav'
 
 export default function Providers({ children }: { children: React.ReactNode }) {
@@ -23,6 +24,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
       <CartProvider>
         {children}
         <FloatingCartBar />
+        <ActiveOrderBottomPill />
         <CartDrawer />
         <BottomNav />
       </CartProvider>
