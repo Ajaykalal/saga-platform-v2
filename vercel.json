@@ -1,0 +1,13 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "crons": [
+    {
+      "path": "/api/cron/check-order-timeouts",
+      "schedule": "*/5 * * * *"
+    },
+    {
+      "path": "/api/cron/settle-escrows",
+      "schedule": "0 0 * * *"
+    }
+  ]
+}
