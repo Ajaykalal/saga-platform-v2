@@ -11,10 +11,33 @@ export const viewport: Viewport = {
 }
 
 export const metadata: Metadata = {
-  title: 'FoodLo | Local Food Delivery & Express Operations',
+  title: 'FoodLo | Sagwara’s Favorite Food Delivery & Express Operations',
   description:
-    'Bhookh Lagi? FoodLo se mangwa lo! Hyperlocal food delivery connecting diners, local cafes, student couriers, and kitchen operations.',
+    'Bhookh Lagi? FoodLo se mangwa lo! Order fresh pizzas, burgers, thalis, and cafe bites from Sagwara’s top kitchens with live tracking.',
   manifest: '/manifest.webmanifest',
+  openGraph: {
+    title: 'FoodLo — Sagwara’s Favorite Local Food Delivery',
+    description:
+      'Bhookh Lagi? FoodLo se mangwa lo! Order online from Meesaavi Cafe, Sevakji, Mewar, and more with zero price markups.',
+    url: 'https://saga-platform.vercel.app',
+    siteName: 'FoodLo',
+    images: [
+      {
+        url: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1200&auto=format&fit=crop&q=80',
+        width: 1200,
+        height: 630,
+        alt: 'FoodLo Local Food Delivery Sagwara',
+      },
+    ],
+    locale: 'en_IN',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'FoodLo | Sagwara Food Delivery',
+    description: 'Bhookh Lagi? FoodLo se mangwa lo! Direct express delivery from Sagwara cafes.',
+    images: ['https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1200&auto=format&fit=crop&q=80'],
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',

@@ -24,7 +24,7 @@ export function formatOrderConfirmedWhatsApp(order: Order, cafeName: string, ori
   const itemsText = order.items.map((i) => `• ${i.quantity}x ${i.name} (₹${i.price_inr * i.quantity})`).join('\n')
   const trackingLink = `${origin}/orders/${order.id}`
 
-  return `🍽️ *SAGA CAFE — Order Confirmed!*
+  return `🍽️ *FoodLo Delivery — Order Confirmed!*
 Order: *#${order.order_number}*
 Store: *${cafeName}*
 
@@ -38,19 +38,19 @@ Estimated Delivery: ~20-25 mins
 📱 *Track Live Order & Rider GPS:*
 ${trackingLink}
 
-_Where Food Meets Play • SAGA Delivery_`
+_Bhookh Lagi? FoodLo se mangwa lo! • Sagwara Delivery_`
 }
 
 /**
  * Formats order picked up / en route message with OTP
  */
-export function formatOrderPickedUpWhatsApp(order: Order, riderName = 'Vikram Singh', origin = ''): string {
+export function formatOrderPickedUpWhatsApp(order: Order, riderName = 'Student Courier', origin = ''): string {
   const trackingLink = `${origin}/orders/${order.id}`
 
-  return `🛵 *SAGA CAFE — Out for Delivery!*
+  return `🛵 *FoodLo Delivery — Out for Delivery!*
 Order: *#${order.order_number}*
 
-Your Student Courier *${riderName}* has verified your parcel and is now en route on an Electric Scooter.
+Your Delivery Partner *${riderName}* has picked up your parcel and is on the way.
 
 🔐 *Your Handover OTP:* *${order.delivery_otp || '4829'}*
 _(Please share this 4-digit code with courier upon delivery)_
@@ -58,19 +58,18 @@ _(Please share this 4-digit code with courier upon delivery)_
 📍 *Live GPS Tracking & Arrival:*
 ${trackingLink}
 
-_Thank you for supporting our student couriers!_`
+_Bhookh Lagi? FoodLo se mangwa lo!_`
 }
 
 /**
  * Formats delivered celebration message
  */
 export function formatOrderDeliveredWhatsApp(order: Order): string {
-  return `🎉 *SAGA CAFE — Parcel Delivered!*
+  return `🎉 *FoodLo Delivery — Parcel Delivered!*
 Order: *#${order.order_number}*
 
 Your hot meal has been handed over successfully.
-📸 Parcel delivery photo proof has been logged.
 
-Enjoy your artisan SAGA feast! ⭐⭐⭐⭐⭐
-_Rate your meal or repeat your order anytime at SAGA Platform._`
+Enjoy your meal! ⭐⭐⭐⭐⭐
+_Rate your meal or re-order anytime on FoodLo._`
 }
