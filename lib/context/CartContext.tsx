@@ -201,6 +201,14 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     if (subtotal < appliedCoupon.minOrderAmount) {
       return 0
     }
+    // Category check (if coupon specifies a category, e.g. Pizza, Burger)
+    if (appliedCoupon.applicableCategory && appliedCoupon.applicableCategory !== 'All') {
+      const targetCategory = appliedCoupon.applicableCategory.toLowerCase()
+      const hasCategory = items.some(
+        (i) => i.category && i.category.toLowerCase().includes(targetCategory)
+      )
+      if (!hasCategory) return 0
+    }
     if (appliedCoupon.discountType === 'flat') {
       return Math.min(appliedCoupon.discountValue, subtotal)
     }
@@ -208,7 +216,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     const pct = Math.round((subtotal * appliedCoupon.discountValue) / 100)
     const capped = appliedCoupon.maxDiscountAmount ? Math.min(pct, appliedCoupon.maxDiscountAmount) : pct
     return Math.min(capped, subtotal)
-  }, [appliedCoupon, subtotal])
+  }, [appliedCoupon, subtotal, items])
 
   const grandTotal = useMemo(() => {
     if (items.length === 0) return 0
@@ -316,7 +324,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const applyPromoCode = useCallback(
     (code: string): CouponValidationResult => {
-      const result = validateAndApplyCoupon(code, subtotal, activeCafe?.id)
+      const result = validateAndApplyCoupon(code, subtotal, activeCafe?.id, items)
       if (result.valid && result.coupon) {
         setAppliedCoupon(result.coupon)
         setCouponFeedback({ text: result.message, isError: false })
@@ -325,7 +333,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       }
       return result
     },
-    [subtotal, activeCafe?.id]
+    [subtotal, activeCafe?.id, items]
   )
 
   const removePromoCode = useCallback(() => {

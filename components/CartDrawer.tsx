@@ -500,20 +500,46 @@ export default function CartDrawer() {
 
             {/* Promo Codes & Coupons Engine Card */}
             {appliedCoupon ? (
-              <div className="bg-emerald-50 border border-emerald-300 rounded-2xl p-3.5 space-y-2">
+              <div
+                className={`border rounded-2xl p-3.5 space-y-2 transition-all ${
+                  discountAmount > 0
+                    ? 'bg-emerald-50 border-emerald-300'
+                    : 'bg-amber-50 border-amber-300'
+                }`}
+              >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <div className="w-7 h-7 rounded-lg bg-emerald-600 text-white flex items-center justify-center">
+                    <div
+                      className={`w-7 h-7 rounded-lg text-white flex items-center justify-center ${
+                        discountAmount > 0 ? 'bg-emerald-600' : 'bg-amber-600'
+                      }`}
+                    >
                       <Ticket className="w-4 h-4" />
                     </div>
                     <div>
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-800 block">
-                        Coupon Applied
+                      <span
+                        className={`text-[10px] font-bold uppercase tracking-wider block ${
+                          discountAmount > 0 ? 'text-emerald-800' : 'text-amber-800'
+                        }`}
+                      >
+                        {discountAmount > 0 ? 'Coupon Applied' : 'Coupon Inactive'}
                       </span>
-                      <span className="text-xs font-black text-emerald-950 flex items-center gap-1.5">
+                      <span className="text-xs font-black text-slate-900 flex items-center gap-1.5">
                         <span>{appliedCoupon.code}</span>
-                        <span className="text-emerald-400">•</span>
-                        <span className="text-emerald-700 font-extrabold">Saved ₹{discountAmount.toFixed(2)}</span>
+                        <span className="text-slate-400">•</span>
+                        {discountAmount > 0 ? (
+                          <span className="text-emerald-700 font-extrabold">
+                            Saved ₹{discountAmount.toFixed(2)}
+                          </span>
+                        ) : subtotal < appliedCoupon.minOrderAmount ? (
+                          <span className="text-amber-800 font-extrabold text-[11px]">
+                            Add ₹{(appliedCoupon.minOrderAmount - subtotal).toFixed(0)} more for discount
+                          </span>
+                        ) : (
+                          <span className="text-amber-800 font-extrabold text-[11px]">
+                            Needs {appliedCoupon.applicableCategory} dish
+                          </span>
+                        )}
                       </span>
                     </div>
                   </div>
@@ -525,9 +551,18 @@ export default function CartDrawer() {
                     Remove
                   </button>
                 </div>
-                <p className="text-[11px] text-emerald-800">
+                <p
+                  className={`text-[11px] ${
+                    discountAmount > 0 ? 'text-emerald-800' : 'text-amber-800'
+                  }`}
+                >
                   {appliedCoupon.description}
                 </p>
+                {discountAmount === 0 && subtotal < appliedCoupon.minOrderAmount && (
+                  <div className="text-[10px] bg-amber-100 text-amber-900 font-semibold px-2 py-1 rounded-lg flex items-center gap-1">
+                    <span>⚠️ Minimum order ₹{appliedCoupon.minOrderAmount} required for this coupon to apply.</span>
+                  </div>
+                )}
               </div>
             ) : (
               <div className="bg-slate-50 border border-slate-200 rounded-2xl p-3.5 space-y-2.5">
@@ -587,9 +622,19 @@ export default function CartDrawer() {
                         >
                           <Sparkles className="w-2.5 h-2.5 text-emerald-600" />
                           <span>{cpn.code}</span>
-                          <span className="text-slate-400 font-sans font-normal">
+                          <span className="text-slate-500 font-sans font-normal">
                             ({cpn.discountType === 'flat' ? `₹${cpn.discountValue} OFF` : `${cpn.discountValue}% OFF`})
                           </span>
+                          {cpn.applicableCategory && cpn.applicableCategory !== 'All' && (
+                            <span className="text-[9px] bg-purple-50 text-purple-700 font-bold px-1 rounded">
+                              {cpn.applicableCategory}
+                            </span>
+                          )}
+                          {cpn.validDays && !cpn.validDays.includes('All Days') && (
+                            <span className="text-[9px] bg-amber-50 text-amber-700 font-bold px-1 rounded">
+                              {cpn.validDays[0]}
+                            </span>
+                          )}
                         </button>
                       ))}
                     </div>

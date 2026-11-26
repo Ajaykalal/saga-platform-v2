@@ -155,6 +155,8 @@ export default function AdminPage() {
   const [newCouponMinOrder, setNewCouponMinOrder] = useState(250)
   const [newCouponMaxDiscount, setNewCouponMaxDiscount] = useState<string>('')
   const [newCouponCafeId, setNewCouponCafeId] = useState<string>('all')
+  const [newCouponCategory, setNewCouponCategory] = useState<string>('All')
+  const [newCouponValidDays, setNewCouponValidDays] = useState<string>('All Days')
   const [newCouponDesc, setNewCouponDesc] = useState('')
 
   // Settlement Automation State
@@ -456,6 +458,8 @@ export default function AdminPage() {
       discountValue: Number(newCouponValue),
       minOrderAmount: Number(newCouponMinOrder),
       maxDiscountAmount: newCouponType === 'percentage' && newCouponMaxDiscount ? Number(newCouponMaxDiscount) : undefined,
+      applicableCategory: newCouponCategory,
+      validDays: newCouponValidDays === 'All Days' ? ['All Days'] : [newCouponValidDays],
       description: newCouponDesc.trim() || `${newCouponType === 'flat' ? `Flat ₹${newCouponValue} OFF` : `${newCouponValue}% OFF`} on orders above ₹${newCouponMinOrder}`,
       cafeId: newCouponCafeId === 'all' ? null : newCouponCafeId,
       cafeName: newCouponCafeId === 'all' ? 'All Network Cafes' : targetCafe?.name,
@@ -467,6 +471,8 @@ export default function AdminPage() {
     setNewCouponCode('')
     setNewCouponDesc('')
     setNewCouponMaxDiscount('')
+    setNewCouponCategory('All')
+    setNewCouponValidDays('All Days')
     sounds.playSuccessCelebration()
     showToast(`🎉 Coupon "${newCouponCode.toUpperCase()}" created & live!`)
   }
@@ -2035,6 +2041,18 @@ export default function AdminPage() {
                             <span className="text-[10px] text-slate-400 block mt-0.5 truncate max-w-xs">
                               {cpn.description}
                             </span>
+                            <div className="flex flex-wrap gap-1 mt-1">
+                              {cpn.applicableCategory && cpn.applicableCategory !== 'All' && (
+                                <span className="text-[9px] font-bold bg-amber-50 text-amber-800 border border-amber-200 px-1.5 py-0.2 rounded">
+                                  🍕 {cpn.applicableCategory}
+                                </span>
+                              )}
+                              {cpn.validDays && !cpn.validDays.includes('All Days') && (
+                                <span className="text-[9px] font-bold bg-blue-50 text-blue-800 border border-blue-200 px-1.5 py-0.2 rounded">
+                                  📅 {cpn.validDays.join(', ')}
+                                </span>
+                              )}
+                            </div>
                           </td>
                           <td className="py-3 px-3 font-bold text-slate-900">
                             {cpn.discountType === 'flat' ? `Flat ₹${cpn.discountValue} OFF` : `${cpn.discountValue}% OFF`}
@@ -3031,6 +3049,47 @@ export default function AdminPage() {
                     </option>
                   ))}
                 </select>
+              </div>
+
+              {/* Day of the Week & Meal Category Targeting */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">
+                    Valid Days
+                  </label>
+                  <select
+                    value={newCouponValidDays}
+                    onChange={(e) => setNewCouponValidDays(e.target.value)}
+                    className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs font-bold bg-white text-slate-800 focus:outline-none cursor-pointer"
+                  >
+                    <option value="All Days">Everyday (All 7 Days)</option>
+                    <option value="Weekends">Weekends (Sat &amp; Sun)</option>
+                    <option value="Weekdays">Weekdays (Mon - Fri)</option>
+                    <option value="Sunday">Sundays Only</option>
+                    <option value="Saturday">Saturdays Only</option>
+                    <option value="Friday">Fridays Only</option>
+                    <option value="Wednesday">Wednesdays Only</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">
+                    Applicable Meal / Item
+                  </label>
+                  <select
+                    value={newCouponCategory}
+                    onChange={(e) => setNewCouponCategory(e.target.value)}
+                    className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs font-bold bg-white text-slate-800 focus:outline-none cursor-pointer"
+                  >
+                    <option value="All">All Menu Items</option>
+                    <option value="Pizza">Pizza Only</option>
+                    <option value="Burger">Burger Only</option>
+                    <option value="Maggi">Maggi &amp; Noodles Only</option>
+                    <option value="Beverages">Cold Coffee &amp; Drinks</option>
+                    <option value="Snacks">Snacks &amp; Fast Food</option>
+                    <option value="Thali">Thali &amp; Meals Only</option>
+                  </select>
+                </div>
               </div>
 
               <div>

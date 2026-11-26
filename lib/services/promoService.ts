@@ -8,8 +8,11 @@ export interface PromoCoupon {
   minOrderAmount: number
   maxDiscountAmount?: number
   description: string
-  cafeId?: string | null // null for all cafes
+  cafeId?: string | null // null for all network cafes
   cafeName?: string
+  applicableCategory?: string | null // 'All' or specific category e.g. 'Pizza', 'Burger', 'Maggi', 'Beverages'
+  validDays?: string[] | null // null or ['All Days'] or ['Weekends'] or ['Weekdays'] or ['Monday', 'Tuesday', etc.]
+  expiryDate?: string | null
   isActive: boolean
   usageCount: number
   createdBy: 'admin' | 'cafe_owner'
@@ -26,20 +29,8 @@ export const SEED_COUPONS: PromoCoupon[] = [
     description: 'Flat ₹50 OFF on fresh local food & cafe orders above ₹250',
     cafeId: null,
     cafeName: 'All Network Cafes',
-    isActive: true,
-    usageCount: 142,
-    createdBy: 'admin',
-    createdAt: '2026-01-10T10:00:00Z',
-  },
-  {
-    id: 'coupon-saga-50',
-    code: 'SAGA50',
-    discountType: 'flat',
-    discountValue: 50,
-    minOrderAmount: 250,
-    description: 'Flat ₹50 OFF on fresh orders above ₹250',
-    cafeId: null,
-    cafeName: 'All Network Cafes',
+    applicableCategory: 'All',
+    validDays: ['All Days'],
     isActive: true,
     usageCount: 142,
     createdBy: 'admin',
@@ -55,24 +46,44 @@ export const SEED_COUPONS: PromoCoupon[] = [
     description: '20% OFF (Up to ₹80) Student Campus Special',
     cafeId: null,
     cafeName: 'All Network Cafes',
+    applicableCategory: 'All',
+    validDays: ['All Days'],
     isActive: true,
     usageCount: 289,
     createdBy: 'admin',
     createdAt: '2026-01-15T12:00:00Z',
   },
   {
-    id: 'coupon-welcome-20',
-    code: 'WELCOME20',
+    id: 'coupon-weekend-40',
+    code: 'WEEKEND40',
     discountType: 'flat',
     discountValue: 40,
-    minOrderAmount: 200,
-    description: 'Flat ₹40 OFF on your fresh cafe feast',
+    minOrderAmount: 240,
+    description: 'Flat ₹40 OFF Saturday & Sunday Weekend Special',
     cafeId: null,
     cafeName: 'All Network Cafes',
+    applicableCategory: 'All',
+    validDays: ['Weekends'],
     isActive: true,
-    usageCount: 95,
+    usageCount: 112,
     createdBy: 'admin',
-    createdAt: '2026-02-01T08:00:00Z',
+    createdAt: '2026-02-01T12:00:00Z',
+  },
+  {
+    id: 'coupon-pizza-50',
+    code: 'PIZZA50',
+    discountType: 'flat',
+    discountValue: 50,
+    minOrderAmount: 280,
+    description: 'Flat ₹50 OFF on Wood-Fired & Fresh Dough Pizzas above ₹280',
+    cafeId: null,
+    cafeName: 'All Network Cafes',
+    applicableCategory: 'Pizza',
+    validDays: ['All Days'],
+    isActive: true,
+    usageCount: 78,
+    createdBy: 'admin',
+    createdAt: '2026-02-10T12:00:00Z',
   },
   {
     id: 'coupon-msv-100',
@@ -83,6 +94,8 @@ export const SEED_COUPONS: PromoCoupon[] = [
     description: 'Flat ₹100 OFF on orders above ₹500 at Meesaavi Cafe and Restro',
     cafeId: 'c1111111-1111-4111-b111-111111111111',
     cafeName: 'Meesaavi Cafe and Restro',
+    applicableCategory: 'All',
+    validDays: ['All Days'],
     isActive: true,
     usageCount: 38,
     createdBy: 'cafe_owner',
@@ -130,13 +143,21 @@ export interface CouponValidationResult {
   coupon?: PromoCoupon
 }
 
+export interface CartItemSnippet {
+  name?: string
+  category?: string
+  price: number
+  quantity: number
+}
+
 /**
  * Validate and calculate discount for a coupon code
  */
 export function validateAndApplyCoupon(
   code: string,
   subtotal: number,
-  cafeId?: string
+  cafeId?: string,
+  cartItems?: CartItemSnippet[]
 ): CouponValidationResult {
   const cleanCode = code.trim().toUpperCase()
   if (!cleanCode) {
@@ -154,6 +175,7 @@ export function validateAndApplyCoupon(
     return { valid: false, discountAmount: 0, message: `Coupon "${cleanCode}" has expired or is inactive.` }
   }
 
+  // 1. Cafe Exclusivity Check
   if (coupon.cafeId && cafeId && coupon.cafeId !== cafeId) {
     return {
       valid: false,
@@ -162,6 +184,53 @@ export function validateAndApplyCoupon(
     }
   }
 
+  // 2. Day-of-the-Week Check (e.g. Weekends, Weekdays, or specific day)
+  if (coupon.validDays && coupon.validDays.length > 0 && !coupon.validDays.includes('All Days')) {
+    const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+    const todayIndex = new Date().getDay()
+    const todayName = dayNames[todayIndex]
+    const isWeekend = todayIndex === 0 || todayIndex === 6
+    const isWeekday = !isWeekend
+
+    const isAllowedDay = coupon.validDays.some((day) => {
+      if (day === 'Weekends' && isWeekend) return true
+      if (day === 'Weekdays' && isWeekday) return true
+      if (day.toLowerCase() === todayName.toLowerCase()) return true
+      return false
+    })
+
+    if (!isAllowedDay) {
+      const allowedStr = coupon.validDays.join(', ')
+      return {
+        valid: false,
+        discountAmount: 0,
+        message: `Coupon "${cleanCode}" is only valid on ${allowedStr} (Today is ${todayName}).`,
+      }
+    }
+  }
+
+  // 3. Category / Specific Meal Check (e.g. Pizza, Burger, Maggi, Beverages)
+  if (
+    coupon.applicableCategory &&
+    coupon.applicableCategory !== 'All' &&
+    cartItems &&
+    cartItems.length > 0
+  ) {
+    const targetCategory = coupon.applicableCategory.toLowerCase()
+    const hasCategoryItem = cartItems.some(
+      (item) => item.category && item.category.toLowerCase().includes(targetCategory)
+    )
+
+    if (!hasCategoryItem) {
+      return {
+        valid: false,
+        discountAmount: 0,
+        message: `Coupon "${cleanCode}" is only valid for "${coupon.applicableCategory}" items. Add a ${coupon.applicableCategory} to qualify!`,
+      }
+    }
+  }
+
+  // 4. Minimum Order Value Check
   if (subtotal < coupon.minOrderAmount) {
     return {
       valid: false,
@@ -170,19 +239,18 @@ export function validateAndApplyCoupon(
     }
   }
 
-  // Calculate discount
+  // 5. Calculate discount
   let discount = 0
   if (coupon.discountType === 'flat') {
     discount = coupon.discountValue
   } else {
-    // Percentage discount
     discount = Math.round((subtotal * coupon.discountValue) / 100)
     if (coupon.maxDiscountAmount && discount > coupon.maxDiscountAmount) {
       discount = coupon.maxDiscountAmount
     }
   }
 
-  // Ensure discount does not exceed subtotal
+  // Discount cannot exceed subtotal
   discount = Math.min(discount, subtotal)
 
   return {
@@ -217,6 +285,9 @@ export function createCoupon(payload: {
   description: string
   cafeId?: string | null
   cafeName?: string
+  applicableCategory?: string | null
+  validDays?: string[] | null
+  expiryDate?: string | null
   createdBy: 'admin' | 'cafe_owner'
 }): PromoCoupon {
   const coupons = getStoredCoupons()
@@ -230,6 +301,9 @@ export function createCoupon(payload: {
     description: payload.description.trim(),
     cafeId: payload.cafeId || null,
     cafeName: payload.cafeName || 'All Network Cafes',
+    applicableCategory: payload.applicableCategory || 'All',
+    validDays: payload.validDays && payload.validDays.length > 0 ? payload.validDays : ['All Days'],
+    expiryDate: payload.expiryDate || null,
     isActive: true,
     usageCount: 0,
     createdBy: payload.createdBy,

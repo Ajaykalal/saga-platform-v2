@@ -118,6 +118,8 @@ export default function MerchantPage() {
   const [newCouponType, setNewCouponType] = useState<'flat' | 'percentage'>('flat')
   const [newCouponValue, setNewCouponValue] = useState<number>(50)
   const [newCouponMinOrder, setNewCouponMinOrder] = useState<number>(250)
+  const [newCouponCategory, setNewCouponCategory] = useState<string>('All')
+  const [newCouponValidDays, setNewCouponValidDays] = useState<string>('All Days')
   const [newCouponDesc, setNewCouponDesc] = useState<string>('')
 
   // Cafe Operating Open/Closed toggle (live synced with customer storefront & admin)
@@ -301,6 +303,8 @@ export default function MerchantPage() {
       discountType: newCouponType,
       discountValue: Number(newCouponValue),
       minOrderAmount: Number(newCouponMinOrder),
+      applicableCategory: newCouponCategory,
+      validDays: newCouponValidDays === 'All Days' ? ['All Days'] : [newCouponValidDays],
       description:
         newCouponDesc.trim() ||
         `${newCouponType === 'flat' ? `Flat ₹${newCouponValue} OFF` : `${newCouponValue}% OFF`} on orders above ₹${newCouponMinOrder} at ${cafe.name}`,
@@ -313,6 +317,8 @@ export default function MerchantPage() {
     setShowMerchantCouponModal(false)
     setNewCouponCode('')
     setNewCouponDesc('')
+    setNewCouponCategory('All')
+    setNewCouponValidDays('All Days')
     sounds.playSuccessCelebration()
     showToast(`🎉 Exclusive offer "${newCouponCode.toUpperCase()}" created for ${cafe.name}!`)
   }
@@ -1463,6 +1469,20 @@ export default function MerchantPage() {
                           <p className="text-xs text-slate-500 mt-0.5">
                             {cpn.description}
                           </p>
+
+                          {/* Day of Week & Meal Category Badges */}
+                          <div className="flex flex-wrap gap-1.5 pt-1.5">
+                            {cpn.applicableCategory && cpn.applicableCategory !== 'All' && (
+                              <span className="text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200 px-2 py-0.5 rounded-md">
+                                🍕 Valid on: {cpn.applicableCategory}
+                              </span>
+                            )}
+                            {cpn.validDays && !cpn.validDays.includes('All Days') && (
+                              <span className="text-[10px] font-bold bg-blue-50 text-blue-800 border border-blue-200 px-2 py-0.5 rounded-md">
+                                📅 Days: {cpn.validDays.join(', ')}
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </div>
 
@@ -2081,6 +2101,50 @@ export default function MerchantPage() {
                   onChange={(e) => setNewCouponMinOrder(Number(e.target.value))}
                   className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:ring-2 focus:ring-emerald-500 outline-none"
                 />
+                <span className="text-[10px] text-slate-400 mt-0.5 block">
+                  Ensures customers order multiple dishes to unlock the discount
+                </span>
+              </div>
+
+              {/* Day of the Week & Meal Category Targeting */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">
+                    Valid Days
+                  </label>
+                  <select
+                    value={newCouponValidDays}
+                    onChange={(e) => setNewCouponValidDays(e.target.value)}
+                    className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs font-bold bg-white text-slate-800 focus:outline-none cursor-pointer"
+                  >
+                    <option value="All Days">Everyday (All 7 Days)</option>
+                    <option value="Weekends">Weekends (Sat &amp; Sun)</option>
+                    <option value="Weekdays">Weekdays (Mon - Fri)</option>
+                    <option value="Sunday">Sundays Only</option>
+                    <option value="Saturday">Saturdays Only</option>
+                    <option value="Friday">Fridays Only</option>
+                    <option value="Wednesday">Wednesdays Only</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">
+                    Applicable Meal / Item
+                  </label>
+                  <select
+                    value={newCouponCategory}
+                    onChange={(e) => setNewCouponCategory(e.target.value)}
+                    className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs font-bold bg-white text-slate-800 focus:outline-none cursor-pointer"
+                  >
+                    <option value="All">All Menu Items</option>
+                    <option value="Pizza">Pizza Only</option>
+                    <option value="Burger">Burger Only</option>
+                    <option value="Maggi">Maggi &amp; Noodles Only</option>
+                    <option value="Beverages">Cold Coffee &amp; Drinks</option>
+                    <option value="Snacks">Snacks &amp; Fast Food</option>
+                    <option value="Thali">Thali &amp; Meals Only</option>
+                  </select>
+                </div>
               </div>
 
               <div>
@@ -2094,6 +2158,16 @@ export default function MerchantPage() {
                   placeholder={`e.g. Flat ₹${newCouponValue} OFF at ${cafe.name}`}
                   className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs text-slate-900 focus:ring-2 focus:ring-emerald-500 outline-none"
                 />
+              </div>
+
+              {/* Educational Margin Guide Box */}
+              <div className="bg-emerald-50/80 border border-emerald-200 rounded-2xl p-3 text-[11px] text-emerald-950 space-y-1">
+                <span className="font-extrabold flex items-center gap-1 text-emerald-800">
+                  💡 Zero Price Markup Guarantee
+                </span>
+                <p className="text-emerald-800 leading-relaxed">
+                  FoodLo keeps your honest counter prices (e.g. ₹120 Pizza, ₹60 Cold Coffee). The Minimum Order Value (₹{newCouponMinOrder}) encourages customers to add 2–3 items so you earn strong profit on order volume!
+                </p>
               </div>
 
               <div className="pt-2 flex items-center justify-end gap-2">
