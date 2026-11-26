@@ -17,7 +17,8 @@ import {
   EyeOff,
   MessageCircle,
 } from 'lucide-react'
-import { useAuth } from '@/lib/context/AuthContext'
+import { useAuth, recordSupportRequest } from '@/lib/context/AuthContext'
+import { getPaymentConfig } from '@/lib/config/paymentConfig'
 
 export default function LoginPage() {
   const {
@@ -262,7 +263,8 @@ export default function LoginPage() {
                     </label>
                     {!isRegisterMode && (
                       <a
-                        href={`https://wa.me/919900012345?text=Hello%20FoodLo%20Support,%20I%20forgot%20my%20account%20PIN%20for%20mobile%20+91${cleanNum}.%20Please%20help%20me%20reset%20it.`}
+                        href={`https://wa.me/${getPaymentConfig().supportWhatsApp}?text=Hello%20FoodLo%20Support,%20I%20forgot%20my%20account%20PIN%20for%20mobile%20+91${cleanNum}.%20Please%20help%20me%20reset%20it.`}
+                        onClick={() => recordSupportRequest(cleanNum, 'forgot_pin')}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-[11px] text-emerald-600 hover:text-emerald-800 font-bold flex items-center gap-1"

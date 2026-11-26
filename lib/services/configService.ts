@@ -13,6 +13,11 @@ export interface DynamicPlatformConfig {
   riderCashLimitInr: number
   defaultCommissionRate: number
   allowMerchantCsvExport: boolean
+  paymentUpiId: string
+  merchantName: string
+  supportPhone: string
+  supportWhatsApp: string
+  qrImageUrl?: string
   announcementBanner: {
     enabled: boolean
     message: string
@@ -31,6 +36,11 @@ export const DEFAULT_PLATFORM_CONFIG: DynamicPlatformConfig = {
   riderCashLimitInr: 1500,
   defaultCommissionRate: 15,
   allowMerchantCsvExport: false,
+  paymentUpiId: 'paytm.s2hlgrh@pty',
+  merchantName: 'Ajay Kalal',
+  supportPhone: '+919351956481',
+  supportWhatsApp: '919351956481',
+  qrImageUrl: '/images/paytm-qr.jpg',
   announcementBanner: {
     enabled: false,
     message: '🌧️ Monsoon Alert in Sagwara: Delivery may take 10–15 mins extra for rider safety.',

@@ -92,7 +92,58 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 const AUTH_STORAGE_KEY = 'saga_auth_user_v2'
-const REGISTERED_USERS_KEY = 'saga_registered_users_v1'
+export const REGISTERED_USERS_KEY = 'saga_registered_users_v1'
+export const SUPPORT_REQUESTS_STORAGE_KEY = 'saga_support_requests_v1'
+
+export interface SupportRequestRecord {
+  id: string
+  phone: string
+  requestType: 'forgot_pin' | 'help'
+  createdAt: string
+  status: 'pending' | 'resolved'
+}
+
+export function getStoredSupportRequests(): SupportRequestRecord[] {
+  if (typeof window === 'undefined') return []
+  try {
+    const raw = localStorage.getItem(SUPPORT_REQUESTS_STORAGE_KEY)
+    if (raw) return JSON.parse(raw)
+  } catch {
+    // ignore
+  }
+  return []
+}
+
+export function recordSupportRequest(phone: string, requestType: 'forgot_pin' | 'help' = 'forgot_pin'): void {
+  if (typeof window === 'undefined') return
+  try {
+    const cleanPhone = phone.replace(/\D/g, '').slice(-10)
+    if (!cleanPhone) return
+    const existing = getStoredSupportRequests()
+    const newRecord: SupportRequestRecord = {
+      id: 'req-' + Date.now(),
+      phone: cleanPhone,
+      requestType,
+      createdAt: new Date().toISOString(),
+      status: 'pending',
+    }
+    const updated = [newRecord, ...existing]
+    localStorage.setItem(SUPPORT_REQUESTS_STORAGE_KEY, JSON.stringify(updated))
+  } catch {
+    // ignore
+  }
+}
+
+export function getRegisteredUsers(): RegisteredUserRecord[] {
+  if (typeof window === 'undefined') return []
+  try {
+    const raw = localStorage.getItem(REGISTERED_USERS_KEY)
+    if (raw) return JSON.parse(raw)
+  } catch {
+    // ignore
+  }
+  return []
+}
 
 interface UpsertableTable {
   upsert: (values: Record<string, unknown>, options?: Record<string, unknown>) => Promise<unknown>

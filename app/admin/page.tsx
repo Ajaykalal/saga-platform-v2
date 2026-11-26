@@ -33,6 +33,7 @@ import {
   Trash2,
   Lock,
   Unlock,
+  Users,
 } from 'lucide-react'
 import { exportDailySalesCsv } from '@/lib/services/exportService'
 import {
@@ -43,7 +44,13 @@ import {
   SAGA_PROMO_EVENT,
   type PromoCoupon,
 } from '@/lib/services/promoService'
-import { useAuth } from '@/lib/context/AuthContext'
+import {
+  useAuth,
+  getRegisteredUsers,
+  getStoredSupportRequests,
+  type RegisteredUserRecord,
+  type SupportRequestRecord,
+} from '@/lib/context/AuthContext'
 import {
   SEED_CAFES,
   SEED_ORDERS,
@@ -80,11 +87,11 @@ export default function AdminPage() {
   const { user } = useAuth()
 
   // Active navigation tab with persistence
-  const [activeTab, setActiveTab] = useState<'cafes' | 'orders' | 'riders' | 'dynamic_settings' | 'escrow' | 'kyc' | 'commission'>(() => {
+  const [activeTab, setActiveTab] = useState<'cafes' | 'orders' | 'riders' | 'dynamic_settings' | 'escrow' | 'kyc' | 'commission' | 'users'>(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('foodlo_admin_active_tab')
-      if (saved && ['cafes', 'orders', 'riders', 'dynamic_settings', 'escrow', 'kyc', 'commission'].includes(saved)) {
-        return saved as 'cafes' | 'orders' | 'riders' | 'dynamic_settings' | 'escrow' | 'kyc' | 'commission'
+      if (saved && ['cafes', 'orders', 'riders', 'dynamic_settings', 'escrow', 'kyc', 'commission', 'users'].includes(saved)) {
+        return saved as 'cafes' | 'orders' | 'riders' | 'dynamic_settings' | 'escrow' | 'kyc' | 'commission' | 'users'
       }
     }
     return 'cafes'
@@ -141,7 +148,21 @@ export default function AdminPage() {
   const [cfgBannerEnabled, setCfgBannerEnabled] = useState(dynamicConfig.announcementBanner.enabled)
   const [cfgBannerMsg, setCfgBannerMsg] = useState(dynamicConfig.announcementBanner.message)
   const [cfgBannerType, setCfgBannerType] = useState(dynamicConfig.announcementBanner.type)
+  const [cfgPaymentUpiId, setCfgPaymentUpiId] = useState(dynamicConfig.paymentUpiId || 'paytm.s2hlgrh@pty')
+  const [cfgMerchantName, setCfgMerchantName] = useState(dynamicConfig.merchantName || 'Ajay Kalal')
+  const [cfgSupportPhone, setCfgSupportPhone] = useState(dynamicConfig.supportPhone || '+919351956481')
+  const [cfgSupportWhatsApp, setCfgSupportWhatsApp] = useState(dynamicConfig.supportWhatsApp || '919351956481')
   const [isSavingConfig, setIsSavingConfig] = useState(false)
+
+  // Registered Customer Accounts & Support Requests
+  const [registeredUsers, setRegisteredUsers] = useState<RegisteredUserRecord[]>(() => {
+    if (typeof window !== 'undefined') return getRegisteredUsers()
+    return []
+  })
+  const [supportRequests, setSupportRequests] = useState<SupportRequestRecord[]>(() => {
+    if (typeof window !== 'undefined') return getStoredSupportRequests()
+    return []
+  })
 
   // Promo Coupons State
   const [coupons, setCoupons] = useState<PromoCoupon[]>(() => {
@@ -394,6 +415,10 @@ export default function AdminPage() {
       riderCashLimitInr: Number(cfgCashLimit) || 1500,
       defaultCommissionRate: Number(cfgCommission) || 15,
       allowMerchantCsvExport: cfgAllowMerchantCsvExport,
+      paymentUpiId: cfgPaymentUpiId.trim() || 'paytm.s2hlgrh@pty',
+      merchantName: cfgMerchantName.trim() || 'Ajay Kalal',
+      supportPhone: cfgSupportPhone.trim() || '+919351956481',
+      supportWhatsApp: cfgSupportWhatsApp.replace(/\D/g, '') || '919351956481',
       announcementBanner: {
         enabled: cfgBannerEnabled,
         message: cfgBannerMsg.trim() || 'Storefront dynamic notice.',
@@ -426,6 +451,10 @@ export default function AdminPage() {
     setCfgBannerEnabled(def.announcementBanner.enabled)
     setCfgBannerMsg(def.announcementBanner.message)
     setCfgBannerType(def.announcementBanner.type)
+    setCfgPaymentUpiId(def.paymentUpiId || 'paytm.s2hlgrh@pty')
+    setCfgMerchantName(def.merchantName || 'Ajay Kalal')
+    setCfgSupportPhone(def.supportPhone || '+919351956481')
+    setCfgSupportWhatsApp(def.supportWhatsApp || '919351956481')
     sounds.playNotificationChime()
     showToast('Reset configuration to default platform values.')
   }
@@ -627,6 +656,23 @@ export default function AdminPage() {
             >
               <Zap className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               <span>🏦 Escrow Payouts</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('users')}
+              className={`py-2.5 sm:py-3 px-2.5 sm:px-3 text-xs sm:text-sm font-bold flex items-center gap-1.5 sm:gap-2 border-b-2 whitespace-nowrap transition-all cursor-pointer shrink-0 ${
+                activeTab === 'users'
+                  ? 'border-emerald-500 text-emerald-400 bg-emerald-500/10'
+                  : 'border-transparent text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              <span>👥 Users &amp; Support</span>
+              {supportRequests.length > 0 && (
+                <span className="text-[9px] sm:text-[10px] bg-amber-500 text-slate-950 px-1.5 py-0.2 rounded-full font-black animate-pulse">
+                  {supportRequests.length}
+                </span>
+              )}
             </button>
           </div>
           {/* Subtle Right Edge Fade Indicator to signify horizontal swipe on mobile */}
@@ -2103,6 +2149,98 @@ export default function AdminPage() {
                 </div>
               </div>
 
+              {/* Settings Card 6: Primary Merchant UPI & WhatsApp Customer Support */}
+              <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-xs space-y-4">
+                <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
+                  <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
+                    <DollarSign className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-extrabold text-slate-900">Primary Merchant UPI &amp; WhatsApp Customer Support</h3>
+                    <p className="text-[11px] text-slate-400">
+                      Update your UPI ID and WhatsApp support phone without touching code. Live synced with customer checkout and login.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-xs font-bold text-slate-700 block mb-1">
+                      Primary UPI ID (Where customer prepayments go)
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={cfgPaymentUpiId}
+                      onChange={(e) => setCfgPaymentUpiId(e.target.value)}
+                      placeholder="e.g. paytm.s2hlgrh@pty or name@okhdfcbank"
+                      className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs font-mono font-bold text-slate-900 focus:ring-2 focus:ring-emerald-500 outline-none"
+                    />
+                    <span className="text-[10px] text-slate-400 mt-1 block">
+                      NPCI UPI handles direct 1-tap checkout (GPay, PhonePe, Paytm)
+                    </span>
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-bold text-slate-700 block mb-1">
+                      Merchant Payee Name
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={cfgMerchantName}
+                      onChange={(e) => setCfgMerchantName(e.target.value)}
+                      placeholder="e.g. Ajay Kalal"
+                      className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:ring-2 focus:ring-emerald-500 outline-none"
+                    />
+                    <span className="text-[10px] text-slate-400 mt-1 block">
+                      Name displayed to customer on UPI payment screen
+                    </span>
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-bold text-slate-700 block mb-1">
+                      Support WhatsApp Number (International format e.g. 919351956481)
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={cfgSupportWhatsApp}
+                      onChange={(e) => setCfgSupportWhatsApp(e.target.value)}
+                      placeholder="919351956481"
+                      className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs font-mono font-bold text-slate-900 focus:ring-2 focus:ring-emerald-500 outline-none"
+                    />
+                    <span className="text-[10px] text-slate-400 mt-1 block">
+                      Direct WhatsApp link for Forgot PIN &amp; customer help
+                    </span>
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-bold text-slate-700 block mb-1">
+                      Customer Helpline Phone
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={cfgSupportPhone}
+                      onChange={(e) => setCfgSupportPhone(e.target.value)}
+                      placeholder="+919351956481"
+                      className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs font-mono font-bold text-slate-900 focus:ring-2 focus:ring-emerald-500 outline-none"
+                    />
+                    <span className="text-[10px] text-slate-400 mt-1 block">
+                      Voice call support number
+                    </span>
+                  </div>
+                </div>
+
+                <div className="bg-emerald-50/80 border border-emerald-200 rounded-2xl p-3 text-[11px] text-emerald-950 flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <span>
+                    <strong>Zero Redeploy:</strong> Whenever you change your UPI ID or WhatsApp number above and click Save, the change takes effect immediately on live production.
+                  </span>
+                </div>
+              </div>
+
               {/* Submit CTA */}
               <div className="flex items-center justify-end gap-3 pt-2">
                 <button
@@ -2438,6 +2576,158 @@ export default function AdminPage() {
                               <Printer className="w-3 h-3" />
                               <span>Advice</span>
                             </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* TAB 8: REGISTERED USERS & SUPPORT REQUESTS */}
+        {activeTab === 'users' && (
+          <div className="space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <h2 className="text-lg font-black text-slate-900 flex items-center gap-2">
+                  <Users className="w-5 h-5 text-emerald-600" />
+                  <span>Registered Users &amp; Customer Support</span>
+                  <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
+                    {registeredUsers.length} Customers
+                  </span>
+                </h2>
+                <p className="text-xs text-slate-500">
+                  View customers who registered on FoodLo, verify their phone numbers, and manage PIN reset requests.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setRegisteredUsers(getRegisteredUsers())
+                    setSupportRequests(getStoredSupportRequests())
+                    sounds.playNotificationChime()
+                    showToast('Refreshed user records.')
+                  }}
+                  className="px-3 py-2 rounded-xl border border-slate-200 hover:bg-slate-100 text-slate-700 font-bold text-xs flex items-center gap-1.5 transition-colors cursor-pointer"
+                >
+                  <RotateCw className="w-3.5 h-3.5 text-slate-500" />
+                  <span>Refresh Records</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Support Requests / Forgot PIN Alerts */}
+            <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-xs space-y-3">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center font-bold">
+                    <MessageCircle className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-extrabold text-slate-900">Pending PIN Reset &amp; WhatsApp Inquiries</h3>
+                    <p className="text-[11px] text-slate-400">Users who tapped "Forgot PIN" on the login screen.</p>
+                  </div>
+                </div>
+                <span className="text-xs font-black px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-900">
+                  {supportRequests.length} Requests
+                </span>
+              </div>
+
+              {supportRequests.length === 0 ? (
+                <div className="py-6 text-center text-slate-400 text-xs">
+                  <span>No pending PIN reset requests. All accounts active.</span>
+                </div>
+              ) : (
+                <div className="divide-y divide-slate-100">
+                  {supportRequests.map((req) => (
+                    <div key={req.id} className="py-3 flex items-center justify-between gap-3 text-xs">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono font-bold text-slate-900">+91 {req.phone}</span>
+                          <span className="text-[10px] font-bold bg-amber-100 text-amber-800 px-2 py-0.2 rounded-full uppercase">
+                            Forgot PIN Request
+                          </span>
+                        </div>
+                        <span className="text-[11px] text-slate-400 mt-0.5 block">
+                          Requested on {new Date(req.createdAt).toLocaleString()}
+                        </span>
+                      </div>
+
+                      <a
+                        href={`https://wa.me/91${req.phone}?text=Hello%20from%20FoodLo%20Support!%20We%20received%20your%20PIN%20reset%20request%20for%20mobile%20+91${req.phone}.%20How%20can%20we%20assist%20you?`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer"
+                      >
+                        <MessageCircle className="w-3.5 h-3.5" />
+                        <span>Reply on WhatsApp</span>
+                      </a>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Registered Users Directory */}
+            <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-xs space-y-3">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
+                    <Users className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-extrabold text-slate-900">Registered Customer Accounts</h3>
+                    <p className="text-[11px] text-slate-400">Local customers with phone &amp; PIN credentials.</p>
+                  </div>
+                </div>
+              </div>
+
+              {registeredUsers.length === 0 ? (
+                <div className="py-8 text-center text-slate-400 text-xs space-y-1">
+                  <p className="font-semibold text-slate-600">No self-registered customers yet.</p>
+                  <p className="text-[11px]">When customers sign up on the login screen, their profile appears here automatically.</p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs">
+                    <thead>
+                      <tr className="border-b border-slate-100 text-slate-400 text-[10px] uppercase font-bold tracking-wider">
+                        <th className="py-2.5 px-3">Customer Name</th>
+                        <th className="py-2.5 px-3">Phone Number</th>
+                        <th className="py-2.5 px-3">Registered On</th>
+                        <th className="py-2.5 px-3 text-right">Quick WhatsApp</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 font-medium">
+                      {registeredUsers.map((u) => (
+                        <tr key={u.id} className="hover:bg-slate-50/70 transition-colors">
+                          <td className="py-3 px-3 font-bold text-slate-900 flex items-center gap-2">
+                            <div className="w-7 h-7 rounded-full bg-emerald-100 text-emerald-800 font-black text-xs flex items-center justify-center">
+                              {u.full_name.charAt(0).toUpperCase()}
+                            </div>
+                            <span>{u.full_name}</span>
+                          </td>
+                          <td className="py-3 px-3 font-mono font-bold text-slate-700">
+                            +91 {u.phone.replace(/\D/g, '').slice(-10)}
+                          </td>
+                          <td className="py-3 px-3 text-slate-500 text-[11px]">
+                            {new Date(u.created_at || Date.now()).toLocaleDateString()}
+                          </td>
+                          <td className="py-3 px-3 text-right">
+                            <a
+                              href={`https://wa.me/91${u.phone.replace(/\D/g, '').slice(-10)}?text=Hello%20${encodeURIComponent(u.full_name)}!%20Welcome%20to%20FoodLo%20Sagwara.`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 text-emerald-700 hover:text-emerald-800 font-bold text-[11px] bg-emerald-50 hover:bg-emerald-100 px-2.5 py-1 rounded-lg transition-colors"
+                            >
+                              <MessageCircle className="w-3 h-3" />
+                              <span>Message</span>
+                            </a>
                           </td>
                         </tr>
                       ))}

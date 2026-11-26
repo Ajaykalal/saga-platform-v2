@@ -1,16 +1,56 @@
 /**
  * FoodLo Central Payment & UPI Configuration
  * Primary Merchant UPI for Ajay Kalal / FoodLo Platform
+ * Dynamic sync with Admin Control Center
  */
+import { getDynamicConfig } from '@/lib/services/configService'
 
-export const SAGA_PAYMENT_CONFIG = {
-  merchantName: 'Ajay Kalal',
-  platformBrand: 'FoodLo Platform',
-  upiId: 'paytm.s2hlgrh@pty',
-  qrImageUrl: '/images/paytm-qr.jpg',
-  supportPhone: '+919880011223',
-  supportWhatsApp: '919900012345',
+export interface PaymentConfig {
+  merchantName: string
+  platformBrand: string
+  upiId: string
+  qrImageUrl: string
+  supportPhone: string
+  supportWhatsApp: string
 }
+
+export function getPaymentConfig(): PaymentConfig {
+  if (typeof window === 'undefined') {
+    return {
+      merchantName: 'Ajay Kalal',
+      platformBrand: 'FoodLo Platform',
+      upiId: 'paytm.s2hlgrh@pty',
+      qrImageUrl: '/images/paytm-qr.jpg',
+      supportPhone: '+919351956481',
+      supportWhatsApp: '919351956481',
+    }
+  }
+  const dynamic = getDynamicConfig()
+  return {
+    merchantName: dynamic.merchantName || 'Ajay Kalal',
+    platformBrand: 'FoodLo Platform',
+    upiId: dynamic.paymentUpiId || 'paytm.s2hlgrh@pty',
+    qrImageUrl: dynamic.qrImageUrl || '/images/paytm-qr.jpg',
+    supportPhone: dynamic.supportPhone || '+919351956481',
+    supportWhatsApp: dynamic.supportWhatsApp || '919351956481',
+  }
+}
+
+export const SAGA_PAYMENT_CONFIG = new Proxy(
+  {
+    merchantName: 'Ajay Kalal',
+    platformBrand: 'FoodLo Platform',
+    upiId: 'paytm.s2hlgrh@pty',
+    qrImageUrl: '/images/paytm-qr.jpg',
+    supportPhone: '+919351956481',
+    supportWhatsApp: '919351956481',
+  },
+  {
+    get(_target, prop: keyof PaymentConfig) {
+      return getPaymentConfig()[prop]
+    },
+  }
+)
 
 export const FOODLO_PAYMENT_CONFIG = SAGA_PAYMENT_CONFIG
 
@@ -24,11 +64,12 @@ export function createUpiPaymentIntent(params: {
   note?: string
 }): string {
   const { amountInr, orderNumber, note } = params
+  const config = getPaymentConfig()
   const cleanNote = note || `Order ${orderNumber} - FoodLo`
-  const encodedName = encodeURIComponent(SAGA_PAYMENT_CONFIG.merchantName)
+  const encodedName = encodeURIComponent(config.merchantName)
   const encodedNote = encodeURIComponent(cleanNote)
 
-  return `upi://pay?pa=${SAGA_PAYMENT_CONFIG.upiId}&pn=${encodedName}&am=${amountInr.toFixed(
+  return `upi://pay?pa=${config.upiId}&pn=${encodedName}&am=${amountInr.toFixed(
     2
   )}&cu=INR&tn=${encodedNote}`
 }
