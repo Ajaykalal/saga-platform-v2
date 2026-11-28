@@ -44,21 +44,13 @@ export default function BottomNav() {
   const isHome = pathname === '/'
   const isMenu = pathname.startsWith('/cafe/')
   const isOrders = pathname.startsWith('/orders')
-  const isLogin = pathname === '/login'
+  const isProfile = pathname === '/profile' || pathname === '/login'
 
   // Target for Menu tab: current cafe or default to Meesaavi Cafe (Sagwara)
   const menuHref = activeCafe ? `/cafe/${activeCafe.slug}` : '/cafe/meesaavi-cafe'
 
-  // Target for Profile tab
-  const profileHref = user
-    ? user.role === 'cafe_owner'
-      ? '/merchant'
-      : user.role === 'rider'
-      ? '/rider'
-      : user.role === 'admin'
-      ? '/admin'
-      : '/login'
-    : '/login'
+  // Dedicated Customer Profile Page
+  const profileHref = '/profile'
 
   return (
     <nav className="fixed bottom-0 left-0 w-full z-40 bg-white/95 backdrop-blur-md border-t border-gray-100 shadow-[0px_-4px_20px_rgba(0,0,0,0.04)] px-2 py-1.5 sm:py-2 max-w-full overflow-hidden">
@@ -126,18 +118,18 @@ export default function BottomNav() {
           <span className="text-[11px] mt-0.5">Orders</span>
         </Link>
 
-        {/* Profile / Switch Role */}
+        {/* Profile */}
         <Link
           href={profileHref}
           className={`flex flex-col items-center justify-center py-1 px-3 rounded-full transition-all tap-feedback ${
-            isLogin
+            isProfile
               ? 'bg-emerald-600 text-white shadow-xs font-semibold'
               : 'text-gray-500 hover:text-emerald-600'
           }`}
         >
           <User className="w-5 h-5" />
           <span className="text-[11px] mt-0.5">
-            {user ? (user.role === 'customer' ? 'Profile' : 'Portal') : 'Login'}
+            {user ? 'Profile' : 'Sign In'}
           </span>
         </Link>
       </div>

@@ -34,13 +34,13 @@ export default function Navbar({
   const { user } = useAuth()
   const [isAddressModalOpen, setIsAddressModalOpen] = useState(false)
 
-  // Determine portal link based on user role
+  // Determine customer profile or staff portal link
   const portalInfo = React.useMemo(() => {
-    if (!user) return { href: '/login', label: 'Login', icon: User }
+    if (!user) return { href: '/profile', label: 'Sign In', icon: User }
     if (user.role === 'cafe_owner') return { href: '/merchant', label: 'Merchant POS', icon: Store }
     if (user.role === 'rider') return { href: '/rider', label: 'Rider App', icon: Bike }
     if (user.role === 'admin') return { href: '/admin', label: 'Admin Panel', icon: Shield }
-    return { href: '/login', label: 'Profile', icon: User }
+    return { href: '/profile', label: 'Profile', icon: User }
   }, [user])
 
   const PortalIcon = portalInfo.icon

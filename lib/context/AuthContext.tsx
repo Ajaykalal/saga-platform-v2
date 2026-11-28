@@ -1,7 +1,7 @@
 'use client'
 
 import React, { createContext, useContext, useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import type { UserRole } from '@/lib/supabase/types'
 import { createBrowserClient } from '@/lib/supabase/client'
 
@@ -151,6 +151,7 @@ interface UpsertableTable {
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter()
+  const pathname = usePathname()
   const [user, setUser] = useState<DemoUser | null>(() => {
     if (typeof window === 'undefined') return DEMO_USERS.customer
     try {
@@ -188,6 +189,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         break
       case 'customer':
       default:
+        if (pathname === '/profile') {
+          // Stay on customer profile page
+          return
+        }
         router.push('/')
         break
     }
