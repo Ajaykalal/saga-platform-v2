@@ -7,6 +7,7 @@ import CartDrawer from '@/components/CartDrawer'
 import FloatingCartBar from '@/components/FloatingCartBar'
 import ActiveOrderBottomPill from '@/components/ActiveOrderBottomPill'
 import BottomNav from '@/components/BottomNav'
+import InstallPwaPrompt from '@/components/InstallPwaPrompt'
 
 export default function Providers({ children }: { children: React.ReactNode }) {
   useEffect(() => {
@@ -27,6 +28,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
         <ActiveOrderBottomPill />
         <CartDrawer />
         <BottomNav />
+        <InstallPwaPrompt />
       </CartProvider>
     </AuthProvider>
   )
